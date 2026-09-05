@@ -1,9 +1,10 @@
 add_executable(renderer_cli
-    main.cpp
+    src/main.cpp
 )
 
 target_link_libraries(renderer_cli PRIVATE
     renderer_core
+    common_deps
 )
 
 target_compile_options(renderer_cli PRIVATE 

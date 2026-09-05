@@ -1,6 +1,8 @@
 #include "render-engine.hpp"
 
+#include <atomic>
 #include <exception>
+#include <stop_token>
 #include <string>
 
 #include "context-guard.hpp"
@@ -206,6 +208,10 @@ void RenderEngine::pathTracing(RenderTarget& target, const Scene::Camera& camera
     int groupsY = (target.getHeight() + 15) / 16;
     auto start = std::chrono::steady_clock::now();
     for (int i = 1; i <= samples; i++) {
+        if (stopRequested.load(std::memory_order_relaxed)) {
+            logger.debug("Path tracing stopped");
+            break;
+        }
         if (i % 5 == 0 || i == samples) {
             logger.info(std::format("Path tracing progress: {}/{}", i, samples));
         }
@@ -435,19 +441,43 @@ void RenderEngine::renderFrame(RenderTarget& target, const Scene& scene, int sam
             throw;
         }
         auto camera = scene.getCamera();
+        if (stopRequested.load(std::memory_order_relaxed)) {
+            stopRequested = false;
+            logger.info("Rendering stopped");
+            return;
+        }
         loadTextures(scene.getTexturesData());
         uploadGPUBuffers(gpuData, bvh);
+        if (stopRequested.load(std::memory_order_relaxed)) {
+            stopRequested = false;
+            logger.info("Rendering stopped");
+            return;
+        }
         auto sun = scene.getSun();
         sun.direction = glm::normalize(sun.direction);
         pathTracing(target, camera, scene.getBackgroundColor(), sun, samples);
-
+        if (stopRequested.load(std::memory_order_relaxed)) {
+            stopRequested = false;
+            logger.info("Rendering stopped");
+            return;
+        }
         fillGbuffer(target, gpuData, camera);
+        if (stopRequested.load(std::memory_order_relaxed)) {
+            stopRequested = false;
+            logger.info("Rendering stopped");
+            return;
+        }
         logger.info("Denoising started");
         auto start = std::chrono::steady_clock::now();
         denoiser.denoise(target);
         auto end = std::chrono::steady_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
         logger.info(std::format("Denoising finished in {}ms", duration.count()));
+        if (stopRequested.load(std::memory_order_relaxed)) {
+            stopRequested = false;
+            logger.info("Rendering stopped");
+            return;
+        }
         postProcess(target);
     } catch (const std::exception& e) {
         logger.error(std::format("Rendering failed. Reason: {}", e.what()));

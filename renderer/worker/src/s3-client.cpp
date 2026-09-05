@@ -5,9 +5,6 @@
 #include <aws/s3/model/GetObjectRequest.h>
 #include <aws/s3/model/PutObjectRequest.h>
 
-#include <exception>
-#include <stdexcept>
-
 #include "logger.hpp"
 
 S3Client::S3Client(const std::string& endpoint, Aws::Auth::AWSCredentials credentials) : logger("S3") {

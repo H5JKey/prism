@@ -8,7 +8,7 @@
 bool Logger::showDebug = false;
 Logger::Level Logger::minLevel = Logger::Level::INFO;
 
-Logger::Logger(std::string_view scope) : scope(scope) {}
+Logger::Logger(std::string_view scope) : scope(scope) { std::clog.setf(std::ios::unitbuf); }
 
 void Logger::log(std::string_view message, Logger::Level level) const {
     if (level == Level::DEBUG && showDebug == false) return;
