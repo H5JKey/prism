@@ -29,21 +29,19 @@ KafkaConsumer::KafkaConsumer(const std::string& brokerList, const std::string& g
 KafkaConsumer::~KafkaConsumer() { consumer.unsubscribe(); }
 
 std::string KafkaConsumer::consume() {
-    while (true) {
-        auto message = consumer.poll(std::chrono::milliseconds(10000));
-        if (message) {
-            if (message.get_error()) {
-                logger.error(std::format("Error: {}", message.get_error().to_string()));
-            } else {
-                std::string strMessage(reinterpret_cast<const char*>(message.get_payload().get_data()),
-                                       message.get_payload().get_size());
-                logger.debug(std::format("Kafka consumed message ({}, offset = {}, partition = {})", strMessage,
-                                         message.get_offset(), message.get_partition()));
-                lastMessage = std::move(message);
-                return strMessage;
-            }
-        }
+    auto message = consumer.poll(std::chrono::milliseconds(1000));
+    if (!message) return "";
+
+    if (message.get_error()) {
+        logger.error(std::format("Error: {}", message.get_error().to_string()));
+        return "";
     }
+    std::string strMessage(reinterpret_cast<const char*>(message.get_payload().get_data()),
+                           message.get_payload().get_size());
+    logger.debug(std::format("Kafka consumed message ({}, offset = {}, partition = {})", strMessage,
+                             message.get_offset(), message.get_partition()));
+    lastMessage = std::move(message);
+    return strMessage;
 }
 
 void KafkaConsumer::commit() {

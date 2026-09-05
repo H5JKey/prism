@@ -1,7 +1,6 @@
 #pragma once
 #include <cppkafka.h>
 
-#include <optional>
 #include <string>
 
 #include "logger.hpp"

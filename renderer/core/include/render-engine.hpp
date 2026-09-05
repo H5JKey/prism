@@ -2,6 +2,7 @@
 #include <glad/gl.h>
 
 #include <random>
+#include <thread>
 
 #include "bvh-builder.hpp"
 #include "bvh.hpp"
@@ -60,6 +61,7 @@ class RenderEngine {
     RenderEngine();
     void renderFrame(RenderTarget& target, const Scene& scene, int samples);
     void destroy();
+    std::atomic<bool> stopRequested{false};
     ~RenderEngine();
 
    private:
