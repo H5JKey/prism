@@ -150,7 +150,7 @@ GLuint RenderEngine::compileShader(const std::string& source) {
 
         std::string errorLog(log.data(), logLength);
 
-        logger.error("Shader compilation failed\n" + errorLog);
+        logger.error("Shader compilation failed: " + errorLog);
         glDeleteShader(shader);
         throw std::runtime_error("Shader compilation failed: " + errorLog);
     }
@@ -169,8 +169,8 @@ GLuint RenderEngine::compileShader(const std::string& source) {
 
         std::string errorLog(log.data(), logLength);
         glDeleteShader(shader);
-        logger.error("Program linking failed" + errorLog);
-        throw std::runtime_error("Program linking failed" + errorLog);
+        logger.error("Program linking failed: " + errorLog);
+        throw std::runtime_error("Program linking failed: " + errorLog);
     }
 
     glDeleteShader(shader);
