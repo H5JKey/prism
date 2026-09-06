@@ -110,7 +110,7 @@ The worker version consists of two main components:
 │  Kafka  │ ◄─► │               │ ───────────────► │                │
 └─────────┘     │    Service    │                  │    Renderer    │     ┌───────┐
                 │               │                  │                │ ◄─► │  GPU  │
-┌─────────┐     │    (parent)   │ ◄─────────────── │    (child)     |     └───────┘
+┌─────────┐     │    (parent)   │ ◄─────────────── │    (child)     │     └───────┘
 │   S3    │ ◄─► │               │   Result Pipe    │                │
 └─────────┘     └───────────────┘                  └────────────────┘
 
