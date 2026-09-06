@@ -60,7 +60,7 @@ void setLogger() {
 }
 
 int main() try {
-    struct sigaction sa{};
+    struct sigaction sa;
     sa.sa_handler = termSignalHandler;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
