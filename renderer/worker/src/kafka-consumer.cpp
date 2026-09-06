@@ -1,5 +1,8 @@
 #include "kafka-consumer.hpp"
 
+#include <librdkafka/rdkafka.h>
+#include <sys/eventfd.h>
+
 #include "consumer.h"
 #include "logger.hpp"
 
@@ -28,8 +31,8 @@ KafkaConsumer::KafkaConsumer(const std::string& brokerList, const std::string& g
 
 KafkaConsumer::~KafkaConsumer() { consumer.unsubscribe(); }
 
-std::string KafkaConsumer::consume() {
-    auto message = consumer.poll(std::chrono::milliseconds(1000));
+std::string KafkaConsumer::consume(std::chrono::milliseconds timeout) {
+    auto message = consumer.poll(timeout);
     if (!message) return "";
 
     if (message.get_error()) {

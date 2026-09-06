@@ -5,10 +5,12 @@
 void Config::apply(env::dotenv dotenv) {
     try {
         if (dotenv.hasVariable("KAFKA_HOST")) kafkaHost_ = dotenv["KAFKA_HOST"];
-        if (dotenv.hasVariable("KAFKA_GROUP_ID")) kafkaGroupID_ = dotenv["KAFKA_GROUP_ID"];
-        if (dotenv.hasVariable("KAFKA_TOPIC_INPUT")) kafkaTopicInput_ = dotenv["KAFKA_TOPIC_INPUT"];
+        if (dotenv.hasVariable("KAFKA_TASKS_GROUP_ID")) kafkaTasksGroupID_ = dotenv["KAFKA_TASKS_GROUP_ID"];
+        if (dotenv.hasVariable("KAFKA_COMMANDS_GROUP_ID")) kafkaCommandsGroupId_ = dotenv["KAFKA_COMMANDS_GROUP_ID"];
+        if (dotenv.hasVariable("KAFKA_TOPIC_TASKS")) kafkaTopicTasks_ = dotenv["KAFKA_TOPIC_TASKS"];
         if (dotenv.hasVariable("KAFKA_TOPIC_OUTPUT")) kafkaTopicOutput_ = dotenv["KAFKA_TOPIC_OUTPUT"];
         if (dotenv.hasVariable("KAFKA_TOPIC_DLQ")) kafkaTopicDLQ_ = dotenv["KAFKA_TOPIC_DLQ"];
+        if (dotenv.hasVariable("KAFKA_TOPIC_COMMANDS")) kafkaTopicCommands_ = dotenv["KAFKA_TOPIC_COMMANDS"];
         if (dotenv.hasVariable("MAX_RETRIES")) maxRetries_ = dotenv["MAX_RETRIES"];
         if (dotenv.hasVariable("S3_HOST")) s3Host_ = dotenv["S3_HOST"];
         if (dotenv.hasVariable("S3_ACCESS_KEY")) s3AccessKey_ = dotenv["S3_ACCESS_KEY"];
@@ -25,10 +27,12 @@ void Config::apply(env::dotenv dotenv) {
 void Config::fromEnvironment() {
     try {
         if (char* ptr = std::getenv("KAFKA_HOST")) kafkaHost_ = env::Value(ptr);
-        if (char* ptr = std::getenv("KAFKA_GROUP_ID")) kafkaGroupID_ = env::Value(ptr);
-        if (char* ptr = std::getenv("KAFKA_TOPIC_INPUT")) kafkaTopicInput_ = env::Value(ptr);
+        if (char* ptr = std::getenv("KAFKA_TASKS_GROUP_ID")) kafkaTasksGroupID_ = env::Value(ptr);
+        if (char* ptr = std::getenv("KAFKA_COMMANDS_GROUP_ID")) kafkaCommandsGroupId_ = env::Value(ptr);
+        if (char* ptr = std::getenv("KAFKA_TOPIC_TASKS")) kafkaTopicTasks_ = env::Value(ptr);
         if (char* ptr = std::getenv("KAFKA_TOPIC_OUTPUT")) kafkaTopicOutput_ = env::Value(ptr);
         if (char* ptr = std::getenv("KAFKA_TOPIC_DLQ")) kafkaTopicDLQ_ = env::Value(ptr);
+        if (char* ptr = std::getenv("KAFKA_TOPIC_COMMANDS")) kafkaTopicCommands_ = env::Value(ptr);
         if (char* ptr = std::getenv("MAX_RETRIES")) maxRetries_ = env::Value(ptr);
         if (char* ptr = std::getenv("S3_HOST")) s3Host_ = env::Value(ptr);
         if (char* ptr = std::getenv("S3_ACCESS_KEY")) s3AccessKey_ = env::Value(ptr);
@@ -48,18 +52,25 @@ std::string Config::kafkaHost() const {
     return kafkaHost_.value();
 }
 
-std::string Config::kafkaGroupID() const {
-    if (!kafkaGroupID_.has_value()) {
-        throw std::runtime_error("KAFKA_GROUP_ID not configured");
+std::string Config::kafkaTasksGroupID() const {
+    if (!kafkaTasksGroupID_.has_value()) {
+        throw std::runtime_error("KAFKA_TASKS_GROUP_ID not configured");
     }
-    return kafkaGroupID_.value();
+    return kafkaTasksGroupID_.value();
 }
 
-std::string Config::kafkaTopicInput() const {
-    if (!kafkaTopicInput_.has_value()) {
-        throw std::runtime_error("KAFKA_TOPIC_INPUT not configured");
+std::string Config::kafkaCommandsGroupId() const {
+    if (!kafkaCommandsGroupId_.has_value()) {
+        throw std::runtime_error("KAFKA_COMMANDS_GROUP_ID not configured");
     }
-    return kafkaTopicInput_.value();
+    return kafkaCommandsGroupId_.value();
+}
+
+std::string Config::kafkaTopicTasks() const {
+    if (!kafkaTopicTasks_.has_value()) {
+        throw std::runtime_error("KAFKA_TOPIC_TASKS not configured");
+    }
+    return kafkaTopicTasks_.value();
 }
 std::string Config::kafkaTopicOutput() const {
     if (!kafkaTopicOutput_.has_value()) {
@@ -73,6 +84,13 @@ std::string Config::kafkaTopicDLQ() const {
         throw std::runtime_error("KAFKA_TOPIC_DLQ not configured");
     }
     return kafkaTopicDLQ_.value();
+}
+
+std::string Config::kafkaTopicCommands() const {
+    if (!kafkaTopicCommands_.has_value()) {
+        throw std::runtime_error("KAFKA_TOPIC_COMMANDS not configured");
+    }
+    return kafkaTopicCommands_.value();
 }
 
 int Config::maxRetries() const { return maxRetries_; }
