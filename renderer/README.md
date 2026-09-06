@@ -111,7 +111,7 @@ The worker version consists of two main components:
 └─────────┘     │    Service    │                  │    Renderer    │     ┌───────┐
                 │               │                  │                │ ◄─► │  GPU  │
 ┌─────────┐     │    (parent)   │ ◄─────────────── │    (child)     │     └───────┘
-│   S3    │ ◄─► │               │   Result Pipe    │                │
+│  MinIO  │ ◄─► │               │   Result Pipe    │                │
 └─────────┘     └───────────────┘                  └────────────────┘
 
 ```
@@ -251,7 +251,7 @@ The renderer worker communicates with other services through JSON messages passe
 
 #### Dead Letter Queue (DLQ)
 
-When a task fails after exhausting all retry attempts, it is sent information to the DLQ Kafka topic.
+When a task fails after exhausting all retry attempts, it is sent to the DLQ Kafka topic.
 
 ```json
 {
