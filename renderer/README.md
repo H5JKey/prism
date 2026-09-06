@@ -103,7 +103,27 @@ docker run --rm renderer renderer_cli <width> <height> <samples> <input_scene> [
 The worker version consists of two main components:
 
 1. **Service** - Manages task lifecycle, Kafka communication, and S3 storage
-2. **Renderer Worker** - Performs the actual rendering using EGL/OpenGL
+2. **Renderer** - Performs the actual rendering using EGL/OpenGL
+
+```
+┌─────────┐     ┌───────────────┐    Task Pipe     ┌────────────────┐
+│  Kafka  │ ◄─► │               │ ───────────────► │                │
+└─────────┘     │    Service    │                  │    Renderer    │     ┌───────┐
+                │               │                  │                │ ◄─► │  GPU  │
+┌─────────┐     │    (parent)   │ ◄─────────────── │    (child)     |     └───────┘
+│   S3    │ ◄─► │               │   Result Pipe    │                │
+└─────────┘     └───────────────┘                  └────────────────┘
+
+```
+
+### Signal Handling
+
+| Signal | Handler | Effect |
+|--------|---------|--------|
+| `SIGINT` | Service | Graceful shutdown, forwards to renderer |
+| `SIGTERM` | Service | Graceful shutdown, forwards to renderer |
+| `SIGINT` | Renderer | Stops current rendering only |
+| `SIGTERM` | Renderer | Shuts down the renderer process |
 
 ### Build
 
@@ -231,7 +251,7 @@ The renderer worker communicates with other services through JSON messages passe
 
 #### Dead Letter Queue (DLQ)
 
-When a task fails after exhausting all retry attempts, it is sent information to the DLQ topic:
+When a task fails after exhausting all retry attempts, it is sent information to the DLQ Kafka topic.
 
 ```json
 {
@@ -239,28 +259,6 @@ When a task fails after exhausting all retry attempts, it is sent information to
   "reason": "Failed to download scene from S3: connection timeout"
 }
 ```
-
-### IPC Communication
-
-The service and renderer communicate via pipes:
-
-```
-┌─────────────┐   Task Pipe    ┌─────────────┐
-│   Service   │ ─────────────▶ │   Renderer  │
-│   (Parent)  │                │   (Child)   │
-│             │   Result Pipe  │             │
-│             │ ◀───────────── │             │
-└─────────────┘                └─────────────┘
-```
-### Signal Handling
-
-| Signal | Handler | Effect |
-|--------|---------|--------|
-| `SIGINT` | Service | Graceful shutdown, forwards to renderer |
-| `SIGTERM` | Service | Graceful shutdown, forwards to renderer |
-| `SIGINT` | Renderer | Stops current rendering only |
-| `SIGTERM` | Renderer | Shuts down the renderer process |
-
 ---
 
 ## 3. Testing
