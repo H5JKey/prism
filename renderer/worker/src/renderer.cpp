@@ -34,6 +34,8 @@ std::atomic<bool> stopRequested{false};
 void termSignalHandler(int signal) {
     if (signal == SIGTERM) {
         running = false;
+        if (engine) engine->stopRequested = true;
+        stopRequested = true;
     }
 }
 
@@ -83,56 +85,55 @@ int main() try {
     while (running) {
         TaskHeader task;
         ssize_t size;
-        if ((size = ::read(STDIN_FILENO, &task, sizeof(task))) == -1) {
+        if ((size = ::read(STDIN_FILENO, &task, sizeof(task))) < 0) {
             if (errno == EINTR) {
                 errno = 0;
             } else {
                 throw std::runtime_error(std::format("Reading task from pipe failed: {}", std::strerror(errno)));
             }
-        }
-        logger.debug(std::format("Read {} bytes from pipe for taskHeader", size));
-        std::vector<uint8_t> sceneData(task.sceneDataSize);
-        size_t total_read = 0;
-        while (total_read < sceneData.size()) {
-            ssize_t bytes_read = read(STDIN_FILENO, sceneData.data() + total_read, sceneData.size() - total_read);
-            if (bytes_read == -1) {
-                if (errno == EINTR) continue;
-                throw std::runtime_error(std::format("Failed to read scene from pipe: {}", std::strerror(errno)));
+        } else if (size > 0) {
+            logger.debug(std::format("Read {} bytes from pipe for taskHeader", size));
+            std::vector<uint8_t> sceneData(task.sceneDataSize);
+            size_t total_read = 0;
+            while (total_read < sceneData.size()) {
+                ssize_t bytes_read = read(STDIN_FILENO, sceneData.data() + total_read, sceneData.size() - total_read);
+                if (bytes_read == -1) {
+                    if (errno == EINTR) continue;
+                    throw std::runtime_error(std::format("Failed to read scene from pipe: {}", std::strerror(errno)));
+                }
+                if (bytes_read == 0) {
+                    throw std::runtime_error("Pipe closed unexpectedly");
+                }
+                total_read += bytes_read;
             }
-            if (bytes_read == 0) {
-                throw std::runtime_error("Pipe closed unexpectedly");
+            logger.debug(std::format("Read {} bytes from pipe for scene", total_read));
+
+            auto egl = TargetManager::getInstance().createEGLTarget(task.width, task.height);
+            Scene scene = sceneLoader.loadGltfFromMemory(sceneData);
+            scene.setBackground(glm::vec3(task.background[0], task.background[1], task.background[2]));
+            Scene::Sun sun;
+            sun.color = glm::vec3(task.sun.color[0], task.sun.color[1], task.sun.color[2]);
+            sun.direction = glm::vec3(task.sun.direction[0], task.sun.direction[1], task.sun.direction[2]);
+            sun.exponent = task.sun.exponent;
+
+            engine->renderFrame(*egl, scene, task.samples);
+            if (!stopRequested) {
+                ContextGuard guard(*egl);
+                auto data = egl->getBufferData<uint8_t>(egl->getOutputTexture());
+                std::vector<uint8_t> result = utils::writeToPng(data, task.width, task.height, 4);
+                ResultHeader resultHeader;
+                resultHeader.resultDataSize = result.size();
+                write(STDOUT_FILENO, &resultHeader, sizeof(resultHeader));
+                logger.debug(std::format("Written {} bytes in pipe for resultHeader", sizeof(resultHeader)));
+                write(STDOUT_FILENO, result.data(), result.size());
+                logger.debug(std::format("Written {} bytes in pipe for result", result.size()));
+            } else {
+                stopRequested = false;
+                ResultHeader resultHeader;
+                resultHeader.resultDataSize = 0;
+                write(STDOUT_FILENO, &resultHeader, sizeof(resultHeader));
+                logger.debug(std::format("Write {} bytes in pipe for resultHeader", sizeof(resultHeader)));
             }
-            total_read += bytes_read;
-        }
-        logger.debug(std::format("Read {} bytes from pipe for scene", total_read));
-
-        auto egl = TargetManager::getInstance().createEGLTarget(task.width, task.height);
-        Scene scene = sceneLoader.loadGltfFromMemory(sceneData);
-        scene.setBackground(glm::vec3(task.background[0], task.background[1], task.background[2]));
-        Scene::Sun sun;
-        sun.color = glm::vec3(task.sun.color[0], task.sun.color[1], task.sun.color[2]);
-        sun.direction = glm::vec3(task.sun.direction[0], task.sun.direction[1], task.sun.direction[2]);
-        sun.exponent = task.sun.exponent;
-
-        engine->renderFrame(*egl, scene, task.samples);
-        if (!stopRequested) {
-            ContextGuard guard(*egl);
-            auto data = egl->getBufferData<uint8_t>(egl->getOutputTexture());
-            std::vector<uint8_t> result = utils::writeToPng(data, task.width, task.height, 4);
-            ResultHeader resultHeader;
-            resultHeader.resultDataSize = result.size();
-            write(STDOUT_FILENO, &resultHeader, sizeof(resultHeader));
-            logger.debug(std::format("Written {} bytes in pipe for resultHeader", sizeof(resultHeader)));
-            write(STDOUT_FILENO, result.data(), result.size());
-            logger.debug(std::format("Written {} bytes in pipe for result", result.size()));
-        } else {
-            stopRequested = false;
-            ResultHeader resultHeader;
-            resultHeader.resultDataSize = 0;
-            write(STDOUT_FILENO, &resultHeader, sizeof(resultHeader));
-            logger.debug(std::format("Write {} bytes in pipe for resultHeader", sizeof(resultHeader)));
-            logger.debug(std::format("Rendering was stopped. Writing 0 dummy bytes in pipe for result"));
-            write(STDOUT_FILENO, NULL, 0);
         }
     }
     logger.info("Renderer worker stopped successfully");

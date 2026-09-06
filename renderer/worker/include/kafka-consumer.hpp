@@ -1,6 +1,8 @@
 #pragma once
 #include <cppkafka.h>
+#include <librdkafka/rdkafka.h>
 
+#include <chrono>
 #include <string>
 
 #include "logger.hpp"
@@ -16,8 +18,9 @@ class KafkaConsumer {
 
    public:
     std::optional<cppkafka::Message> lastMessage;
+    int getEventFd();
     KafkaConsumer(const std::string& brokerList, const std::string& groupId, const std::string& topicName);
-    std::string consume();
+    std::string consume(std::chrono::milliseconds timeout = std::chrono::milliseconds(0));
     void commit();
     ~KafkaConsumer();
 };
