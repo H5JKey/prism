@@ -38,14 +38,14 @@
 
 ---
 
-## 1. CLI version
+## 1. CLI Version
 
 ### Build
 
 #### Docker
 
 ```bash
-docker build --file renderer/Dockerfile -t renderer --build-arg BUILD_MODE=CLI  .
+docker build --file renderer/Dockerfile -t renderer --build-arg BUILD_MODE=CLI .
 ```
 
 #### CMake
@@ -69,7 +69,7 @@ docker run --rm renderer renderer_cli <width> <height> <samples> <input_scene> [
 ./renderer_cli <width> <height> <samples> <input_scene> [OPTIONS]
 ```
 
-###  Command line arguments
+### Command Line Arguments
 
 | Argument | Type | Description |
 |----------|------|-------------|
@@ -78,7 +78,7 @@ docker run --rm renderer renderer_cli <width> <height> <samples> <input_scene> [
 | `samples` | `int` | Number of samples per pixel |
 | `input_scene` | `string` | Path to .glb/.gltf scene file |
 
-### Command line options
+### Command Line Options
 
 | Option | Type | Description |
 |--------|------|-------------|
@@ -93,9 +93,17 @@ docker run --rm renderer renderer_cli <width> <height> <samples> <input_scene> [
 
 ---
 
-## 2. Worker version
+## 2. Worker Version
+
 > [!IMPORTANT] 
-Unlike CLI version, worker can operate only .glb files
+> Unlike CLI version, worker can only operate on .glb files (not .gltf).
+
+### Architecture Overview
+
+The worker version consists of two main components:
+
+1. **Service** - Manages task lifecycle, Kafka communication, and S3 storage
+2. **Renderer Worker** - Performs the actual rendering using EGL/OpenGL
 
 ### Build
 
@@ -111,40 +119,46 @@ mkdir build && cd build
 cmake .. -DBUILD_MODE=WORKER
 cmake --build .
 ```
+
 ### Usage
 
 #### Docker
 ```bash
-docker run --rm renderer renderer_worker
+docker run --rm renderer service
 ```
 
 #### CMake
 ```bash
-cd renderer/build && ./renderer_worker
+cd renderer/build && ./service
 ```
 
 ### Configuration
 
-The worker can be configured using environment variables or a .env file in the prism/renderer directory. 
+The worker can be configured using environment variables or a `.env` file in the `prism/renderer` directory. 
+
 > [!IMPORTANT]
-Environment variables take precedence over values defined in the .env file and overwrite .env values.
+> Environment variables take precedence over values defined in the `.env` file and overwrite `.env` values.
+
+#### Service Configuration
 
 | Variable |  Description | Required | Default |
 |----------|--------------|----------|---------|
 | `KAFKA_HOST` |	Kafka broker address | Yes | `-` |
 | `KAFKA_GROUP_ID` |	Kafka consumer group ID |	Yes | `-` |
-| `KAFKA_TOPIC_INPUT`	| Kafka topic to consume messages | Yes | `-` |
+| `KAFKA_COMMANDS_GROUP_ID` | Kafka consumer group ID for commands | Yes | `-` |
+| `KAFKA_TOPIC_TASKS` | Kafka topic to consume tasks from | Yes | `-` |
+| `KAFKA_TOPIC_COMMANDS` | Kafka topic to consume commands from | Yes | `-` |
 | `KAFKA_TOPIC_OUTPUT` | Kafka topic to produce messages |	Yes | `-` |
 | `KAFKA_TOPIC_DLQ` | Kafka topic for dead letter queue |	Yes | `-` |
 | `MAX_RETRIES` | Maximum retry attempts for failed messages |	No | `5` |
 | `S3_HOST` |	S3 storage endpoint | Yes | `-` |
 | `S3_ACCESS_KEY`	| S3 access key | Yes | `-` |
 | `S3_SECRET_KEY`	| S3 secret key	| Yes | `-` |
-| `RENDERER_LOG_LEVEL`	| Log level (DEBUG, INFO, WARNING, ERROR)	|	No | `INFO` |
-| `RENDERER_LOG_DEBUG`	| Enable debug logging (true/false)	| No | `true` |
+| `LOG_LEVEL`	| Log level (DEBUG, INFO, WARNING, ERROR)	|	No | `INFO` |
+| `LOG_DEBUG`	| Enable debug logging (true/false)	| No | `true` |
 | `RENDERER_PREVIEW` | Generate image in lower resolution and only 5 samples (true/false) | No | `false` |
 
-### Preview
+### Preview Mode
 
 The worker can be configured to generate preview images. When preview mode is enabled, the renderer produces lower-quality outputs significantly faster, allowing you to verify scene composition and camera angles before committing to full-resolution renders.
 
@@ -159,14 +173,24 @@ The worker can be configured to generate preview images. When preview mode is en
   </tr>
 </table>
 
+### Stop Command
 
-### Task format
+The service supports cancelling the current rendering task via a stop command sent to the commands Kafka topic:
+
+```json
+{
+  "project_id": 67,
+  "command": "stop"
+}
+```
+
+### Json Format
 
 The renderer worker communicates with other services through JSON messages passed via Kafka.
 
-#### Input
+#### Task
 
-```JSON
+```json
 {
   "project_id": 67,
   "input": {
@@ -174,7 +198,8 @@ The renderer worker communicates with other services through JSON messages passe
     "key": "test.glb"
   },
   "output": {
-    "bucket": "output"
+    "bucket": "output",
+    "key": "result.png"
   },
   "render": {
     "width": 1920,
@@ -192,9 +217,9 @@ The renderer worker communicates with other services through JSON messages passe
 }
 ```
 
-#### Output
+#### Output Result
 
-```JSON
+```json
 {
   "project_id": 67,
   "output": {
@@ -203,6 +228,38 @@ The renderer worker communicates with other services through JSON messages passe
   }
 }
 ```
+
+#### Dead Letter Queue (DLQ)
+
+When a task fails after exhausting all retry attempts, it is sent information to the DLQ topic:
+
+```json
+{
+  "project_id": 67,
+  "reason": "Failed to download scene from S3: connection timeout"
+}
+```
+
+### IPC Communication
+
+The service and renderer communicate via pipes:
+
+```
+┌─────────────┐   Task Pipe    ┌─────────────┐
+│   Service   │ ─────────────▶ │   Renderer  │
+│   (Parent)  │                │   (Child)   │
+│             │   Result Pipe  │             │
+│             │ ◀───────────── │             │
+└─────────────┘                └─────────────┘
+```
+### Signal Handling
+
+| Signal | Handler | Effect |
+|--------|---------|--------|
+| `SIGINT` | Service | Graceful shutdown, forwards to renderer |
+| `SIGTERM` | Service | Graceful shutdown, forwards to renderer |
+| `SIGINT` | Renderer | Stops current rendering only |
+| `SIGTERM` | Renderer | Shuts down the renderer process |
 
 ---
 
