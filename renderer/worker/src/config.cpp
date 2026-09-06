@@ -15,9 +15,8 @@ void Config::apply(env::dotenv dotenv) {
         if (dotenv.hasVariable("S3_HOST")) s3Host_ = dotenv["S3_HOST"];
         if (dotenv.hasVariable("S3_ACCESS_KEY")) s3AccessKey_ = dotenv["S3_ACCESS_KEY"];
         if (dotenv.hasVariable("S3_SECRET_KEY")) s3SecretKey_ = dotenv["S3_SECRET_KEY"];
-        if (dotenv.hasVariable("RENDERER_LOG_LEVEL"))
-            logLevel_ = Logger::getLevelFromString(dotenv["RENDERER_LOG_LEVEL"]);
-        if (dotenv.hasVariable("RENDERER_LOG_DEBUG")) logDebug_ = dotenv["RENDERER_LOG_DEBUG"];
+        if (dotenv.hasVariable("LOG_LEVEL")) logLevel_ = Logger::getLevelFromString(dotenv["LOG_LEVEL"]);
+        if (dotenv.hasVariable("LOG_DEBUG")) logDebug_ = dotenv["LOG_DEBUG"];
         if (dotenv.hasVariable("RENDERER_PREVIEW")) preview_ = dotenv["RENDERER_PREVIEW"];
     } catch (const env::Value::ValueError& e) {
         throw std::runtime_error(std::format("Invalid value format in .env file. Error: {}.", e.what()));
@@ -37,8 +36,8 @@ void Config::fromEnvironment() {
         if (char* ptr = std::getenv("S3_HOST")) s3Host_ = env::Value(ptr);
         if (char* ptr = std::getenv("S3_ACCESS_KEY")) s3AccessKey_ = env::Value(ptr);
         if (char* ptr = std::getenv("S3_SECRET_KEY")) s3SecretKey_ = env::Value(ptr);
-        if (char* ptr = std::getenv("RENDERER_LOG_LEVEL")) logLevel_ = Logger::getLevelFromString(env::Value(ptr));
-        if (char* ptr = std::getenv("RENDERER_LOG_DEBUG")) logDebug_ = env::Value(ptr);
+        if (char* ptr = std::getenv("LOG_LEVEL")) logLevel_ = Logger::getLevelFromString(env::Value(ptr));
+        if (char* ptr = std::getenv("LOG_DEBUG")) logDebug_ = env::Value(ptr);
         if (char* ptr = std::getenv("RENDERER_PREVIEW")) preview_ = env::Value(ptr);
     } catch (const env::Value::ValueError& e) {
         throw std::runtime_error(std::format("Invalid environment variable value format. Error: {}.", e.what()));

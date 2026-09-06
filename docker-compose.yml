@@ -20,7 +20,7 @@ services:
         BUILD_MODE: WORKER
         BUILD_TESTS: OFF
     container_name: renderer
-    command: [ "renderer_worker" ]
+    command: [ "service" ]
     hostname: renderer
     depends_on:
       minio:
