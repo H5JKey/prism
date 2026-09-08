@@ -25,6 +25,7 @@ engine = create_async_engine(
     max_overflow=settings.database.max_overflow,
     pool_timeout=settings.database.pool_timeout,
     pool_recycle=settings.database.pool_recycle,
+    pool_pre_ping=settings.database.pool_pre_ping,
     echo=settings.database.echo,
 )
 

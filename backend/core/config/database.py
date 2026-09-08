@@ -12,6 +12,7 @@ class DataBaseConfig(BaseModel):
     max_overflow: int = 10
     pool_timeout: int = 30
     pool_recycle: int = 3600
+    pool_pre_ping: bool = True
     expire_on_commit: bool = True
     echo: bool = False
 
