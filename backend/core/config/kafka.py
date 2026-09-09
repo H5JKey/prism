@@ -4,6 +4,7 @@ from pydantic import BaseModel
 class KafkaTopicConfig(BaseModel):
     create_project: str = "create_project"
     generate_render: str = "generate_model"
+    dead_letter_queue: str = "dead_letter_queue"
 
 
 class KafkaConfig(BaseModel):
