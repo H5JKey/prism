@@ -6,6 +6,7 @@ from services.project import ProjectService
 
 from infrastructure.database.core import session_factory
 from infrastructure.database.unit_of_work import UnitOfWork
+from infrastructure.kafka.utils import serialize_message
 from infrastructure.minio.client import MinioClient
 from infrastructure.minio.session import get_minio_session
 
@@ -19,6 +20,7 @@ async def get_producer() -> AIOKafkaProducer:
     if _producer is None:
         _producer = AIOKafkaProducer(
             bootstrap_servers=settings.kafka.bootstrap_servers,
+            value_serializer=serialize_message,
         )
     return _producer
 

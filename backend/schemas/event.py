@@ -40,9 +40,9 @@ class AddRenderProjectEvent(BaseModel):
     output: FileLocationCreate
 
 
-class DLQFormatMessage(BaseModel):
+class DLQMessage(BaseModel):
     """
-    Схема для формата json при ошибке обработки
+    Схема для json при ошибке обработки
     сообщения в брокере.
     """
 

@@ -1,13 +1,12 @@
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from core.config.application import settings
 from pydantic import ValidationError
-from schemas.event import DLQFormatMessage
+from schemas.event import DLQMessage
 
 from infrastructure.kafka.producer import process_message
 from infrastructure.kafka.utils import (
     deserialize_message,
     send_message,
-    serialize_message,
 )
 
 _consumer = None
@@ -32,11 +31,10 @@ async def consume(consumer: AIOKafkaConsumer, producer: AIOKafkaProducer) -> Non
             await process_message(message)
             await consumer.commit()
         except ValidationError as error:
-            dlq_format_message = DLQFormatMessage(
+            dlq_message = DLQMessage(
                 message=message.value,
                 error=str(error),
             )
-            dlq_message = serialize_message(dlq_format_message)
             await send_message(
                 producer=producer,
                 topic=settings.kafka.topic.dead_letter_queue,

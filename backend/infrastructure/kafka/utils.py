@@ -5,7 +5,9 @@ from aiokafka import AIOKafkaProducer
 from aiokafka.errors import (
     BrokerNotAvailableError,
     KafkaConnectionError,
-    RequestTimedOutError,
+    KafkaTimeoutError,
+    LeaderNotAvailableError,
+    NodeNotReadyError,
 )
 from core.exceptions.base import KafkaSendError
 from core.logging import get_logger
@@ -14,8 +16,11 @@ from pydantic import BaseModel
 logger = get_logger(__name__)
 
 
-def serialize_message[T: BaseModel](message_data: T) -> bytes:
-    message_dict = message_data.model_dump()
+def serialize_message[T: BaseModel | dict](message_data: T) -> bytes:  # type: ignore[type-arg]
+    message_dict = message_data
+    if isinstance(message_data, BaseModel):
+        message_dict = message_data.model_dump()  # type: ignore[assignment]
+
     serialized_value = dumps(message_dict)
     encoded_serialized_value = serialized_value.encode()
     return encoded_serialized_value
@@ -30,7 +35,7 @@ def deserialize_message(message: bytes) -> dict[str, str | int | bool]:
 async def send_message(
     producer: AIOKafkaProducer,
     topic: str,
-    value: bytes | None = None,
+    value: bytes | BaseModel | None = None,
     key: str | None = None,
     max_retries: int = 3,
     base_delay: float = 1.0,
@@ -50,7 +55,13 @@ async def send_message(
                 value,
             )
             return  # noqa: TRY300
-        except (KafkaConnectionError, RequestTimedOutError, BrokerNotAvailableError):
+        except (
+            KafkaConnectionError,
+            KafkaTimeoutError,
+            BrokerNotAvailableError,
+            NodeNotReadyError,
+            LeaderNotAvailableError,
+        ):
             logger.warning(
                 "Kafka send failed. Retry %s/%s, topic='%s', key='%s', delay=%.2fs",
                 attempt,
