@@ -38,3 +38,13 @@ class AddRenderProjectEvent(BaseModel):
 
     project_id: int
     output: FileLocationCreate
+
+
+class DLQFormatMessage(BaseModel):
+    """
+    Схема для формата json при ошибке обработки
+    сообщения в брокере.
+    """
+
+    message: dict[str, str | int | bool]
+    error: str

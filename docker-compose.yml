@@ -12,6 +12,8 @@ services:
         condition: service_healthy
       renderer:
         condition: service_started
+    restart: on-failure
+
   renderer:
     build:
       context: .
@@ -62,6 +64,7 @@ services:
       interval: 2s
       timeout: 2s
       retries: 3
+    restart: on-failure
 
   outbox-worker:
     build:
@@ -89,6 +92,7 @@ services:
       interval: 2s
       timeout: 2s
       retries: 3
+    restart: on-failure
 
   database:
     image: postgres:17-bookworm
@@ -108,6 +112,7 @@ services:
       interval: 2s
       timeout: 2s
       retries: 3
+    restart: on-failure
 
   minio:
     image: minio/minio
@@ -128,6 +133,7 @@ services:
       interval: 2s
       timeout: 2s
       retries: 3
+    restart: on-failure
 
   kafka:
     image: confluentinc/cp-kafka:latest
@@ -163,6 +169,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
     ports:
       - "9093:9093"
+    restart: on-failure
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -174,11 +181,10 @@ services:
       KAFKA_CLUSTERS_0_PROPERTIES_AUTO_CREATE_TOPICS: true
     ports:
       - "8090:8080"
-
     depends_on:
       kafka:
         condition: service_started
-
+    restart: on-failure
 
 
 volumes:
