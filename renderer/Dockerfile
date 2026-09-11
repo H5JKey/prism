@@ -14,12 +14,11 @@ RUN pacman -Syu --noconfirm && \
     mesa \
     mesa-utils \
     python-jinja \
-    ispc \
-    boost \ 
-    boost-libs \
     librdkafka \
     openimagedenoise \
     aws-sdk-cpp \
+    boost \
+    boost-libs \
     libglvnd \
     libx11 \
     libxrandr \
