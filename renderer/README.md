@@ -20,7 +20,7 @@
 
 ---
 
-## Required Libraries (for CMake building only)
+## Required Libraries
 
 The following libraries must be installed before building with CMake:
 
