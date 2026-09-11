@@ -1,5 +1,13 @@
 from enum import StrEnum
 
+from aiokafka.errors import (
+    BrokerNotAvailableError,
+    KafkaConnectionError,
+    KafkaTimeoutError,
+    LeaderNotAvailableError,
+    NodeNotReadyError,
+)
+
 USER_SURNAME_MIN_LENGTH = 3
 USER_SURNAME_MAX_LENGTH = 20
 
@@ -56,6 +64,14 @@ TOKEN_TYPE = "type"
 BEARER_TOKEN_TYPE = "Bearer"
 ACCESS_TOKEN_FIELD = "access"
 REFRESH_TOKEN_FIELD = "refresh"
+
+KAFKA_CONNECTION_ERROR = (
+    KafkaConnectionError
+    | KafkaTimeoutError
+    | BrokerNotAvailableError
+    | NodeNotReadyError
+    | LeaderNotAvailableError
+)
 
 
 class EventStatus(StrEnum):
