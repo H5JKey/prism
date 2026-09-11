@@ -2,13 +2,7 @@ import asyncio
 from json import dumps, loads
 
 from aiokafka import AIOKafkaProducer
-from aiokafka.errors import (
-    BrokerNotAvailableError,
-    KafkaConnectionError,
-    KafkaTimeoutError,
-    LeaderNotAvailableError,
-    NodeNotReadyError,
-)
+from core.constants import KAFKA_CONNECTION_ERROR
 from core.exceptions.base import KafkaSendError
 from core.logging import get_logger
 from pydantic import BaseModel
@@ -55,13 +49,7 @@ async def send_message(
                 value,
             )
             return  # noqa: TRY300
-        except (
-            KafkaConnectionError,
-            KafkaTimeoutError,
-            BrokerNotAvailableError,
-            NodeNotReadyError,
-            LeaderNotAvailableError,
-        ):
+        except KAFKA_CONNECTION_ERROR:
             logger.warning(
                 "Kafka send failed. Retry %s/%s, topic='%s', key='%s', delay=%.2fs",
                 attempt,
