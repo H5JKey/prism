@@ -19,6 +19,19 @@
 
 ---
 
+## Required Libraries
+
+The following libraries must be installed before building with CMake:
+
+- OpenGL 4.6
+- EGL
+- AWS SDK for C++
+- OpenImageDenoise
+- Boost
+- librdkafka
+
+Docker images include all required system dependencies.
+
 ## Build Options
 
 ### Build Modes

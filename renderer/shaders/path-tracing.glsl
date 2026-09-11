@@ -229,7 +229,7 @@ HitInfo castRayThroughBVH(vec3 origin, vec3 direction) {
     closestHitInfo.normal = vec3(0);
     closestHitInfo.material_id = -1;
 
-    int stack[1024];
+    int stack[128];
     int stackPtr = 0;
 
     stack[stackPtr++] = 0;
