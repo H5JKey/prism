@@ -17,20 +17,35 @@
   </tr>
 </table>
 
+
 ---
 
-## Required Libraries
+## Required Libraries (for CMake building only)
 
 The following libraries must be installed before building with CMake:
 
+### Renderer Core
+
 - OpenGL 4.6
 - EGL
-- AWS SDK for C++
 - OpenImageDenoise
+
+> [!IMPORTANT] 
+> Core dependencies are required for all build modes, including Worker and CLI.
+
+### CLI
+
+No additional dependencies beyond Renderer Core
+
+### Worker
+
+- AWS SDK for C++
 - Boost
 - librdkafka
 
 Docker images include all required system dependencies.
+
+---
 
 ## Build Options
 
@@ -146,6 +161,7 @@ docker build --file renderer/Dockerfile -t renderer --build-arg BUILD_MODE=WORKE
 ```
 
 #### CMake
+
 ```bash
 cd renderer
 mkdir build && cd build
