@@ -2,12 +2,11 @@ from json import dumps
 from types import TracebackType
 from typing import Self
 
-from aiokafka import AIOKafkaProducer
 from core.config.application import settings
 from core.interfaces.clients import AbstractUnitOfWorkClient
+from core.interfaces.kafka import AbstractKafkaProducer
 from core.logging import get_logger
 from infrastructure.database.repositories.outbox import OutboxRepository
-from infrastructure.kafka.utils import send_message
 from sqlalchemy.dialects.postgresql import JSONB
 
 logger = get_logger(__name__)
@@ -17,7 +16,7 @@ class OutboxWorker:
     def __init__(
         self,
         unit_of_work: AbstractUnitOfWorkClient,
-        producer: AIOKafkaProducer,
+        producer: AbstractKafkaProducer,
     ) -> None:
         self._unit_of_work = unit_of_work
         self.outbox_repository = self._unit_of_work.get_repository(OutboxRepository)
@@ -44,8 +43,7 @@ class OutboxWorker:
         logger.info("Received message, message=%s", event.message)
         await self.outbox_repository.mark_event_as_sent(event.id)
         topic = settings.kafka.topic.create_project
-        await send_message(
-            producer=self.producer,
+        await self.producer.send(
             topic=topic,
             value=event.message,
         )

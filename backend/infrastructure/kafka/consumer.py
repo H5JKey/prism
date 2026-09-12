@@ -5,7 +5,8 @@ from typing import Any
 
 from aiokafka import AIOKafkaConsumer, ConsumerRecord
 from core.config.application import settings
-from core.constants import KAFKA_CONNECTION_ERROR
+from core.constants import KAFKA_CONNECTION_ERRORS
+from core.interfaces.kafka import AbstractKafkaConsumer
 from core.logging import get_logger
 from schemas.event import AddRenderProjectEvent
 from services.project import ProjectService
@@ -18,7 +19,7 @@ from infrastructure.minio.session import get_minio_session
 logger = get_logger(__name__)
 
 
-class KafkaConsumer:
+class KafkaConsumer(AbstractKafkaConsumer):
     def __init__(
         self,
         *topics: str,
@@ -27,10 +28,10 @@ class KafkaConsumer:
         self._consumer: AIOKafkaConsumer | None = None
         self._task: Task[Any] | None = None
         self.topics = topics
-        self.kwargs = kwargs
+        self.params = kwargs
 
     async def _start(self) -> None:
-        self._consumer = AIOKafkaConsumer(*self.topics, **self.kwargs)
+        self._consumer = AIOKafkaConsumer(*self.topics, **self.params)
         await self._consumer.start()
         logger.info("Kafka consumer started")
 
@@ -44,7 +45,7 @@ class KafkaConsumer:
                     await process_message_function(message)
                     await self._consumer.commit()
                     delay = 1
-            except KAFKA_CONNECTION_ERROR:
+            except KAFKA_CONNECTION_ERRORS:
                 logger.exception("Kafka consumer connection error")
                 await asyncio.sleep(delay)
                 delay *= 2
