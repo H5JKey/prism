@@ -65,12 +65,12 @@ BEARER_TOKEN_TYPE = "Bearer"
 ACCESS_TOKEN_FIELD = "access"
 REFRESH_TOKEN_FIELD = "refresh"
 
-KAFKA_CONNECTION_ERROR = (
-    KafkaConnectionError
-    | KafkaTimeoutError
-    | BrokerNotAvailableError
-    | NodeNotReadyError
-    | LeaderNotAvailableError
+KAFKA_CONNECTION_ERRORS = (
+    KafkaConnectionError,
+    KafkaTimeoutError,
+    BrokerNotAvailableError,
+    NodeNotReadyError,
+    LeaderNotAvailableError,
 )
 
 
