@@ -8,6 +8,7 @@
 #include <csignal>
 #include <cstdlib>
 #include <exception>
+#include <filesystem>
 #include <nlohmann/json.hpp>
 #include <stdexcept>
 
@@ -125,8 +126,10 @@ int main() try {
         std::string debugEnv = "RENDERER_LOG_DEBUG=" + std::string(config.logDebug() ? "true" : "false");
         std::string logLevelEnv = "RENDERER_LOG_LEVEL=" + Logger::getStringFromLevel(config.logLevel());
         const char* envp[] = {debugEnv.c_str(), logLevelEnv.c_str(), nullptr};
-        execle("./renderer", "renderer", nullptr, envp);
-        throw std::runtime_error("Failed to start renderer");
+
+        std::filesystem::path rendererPath = std::filesystem::read_symlink("/proc/self/exe").parent_path() / "renderer";
+        execle(rendererPath.c_str(), "renderer", nullptr, envp);
+        throw std::runtime_error(std::format("Failed to start renderer. Exec failed: ", strerror(errno)));
     }
     /* Error*/
     else if (renderer_pid < 0) {

@@ -25,7 +25,7 @@ std::string getEnv(const std::string& name) {
     return value ? std::string(value) : "";
 }
 
-Logger logger("WORKER");
+Logger logger("RENDERER");
 std::unique_ptr<RenderEngine> engine;
 
 std::atomic<bool> running{true};
