@@ -5,10 +5,14 @@ from typing import Any
 
 from aiokafka import AIOKafkaConsumer, ConsumerRecord
 from core.config.application import settings
-from core.constants import KAFKA_CONNECTION_ERRORS
-from core.interfaces.kafka import AbstractKafkaConsumer
+from core.constants import (
+    DATABASE_CONNECTION_ERRORS,
+    KAFKA_CONNECTION_ERRORS,
+    S3_STORAGE_CONNECTION_ERRORS,
+)
+from core.interfaces.kafka import AbstractKafkaConsumer, AbstractKafkaProducer
 from core.logging import get_logger
-from schemas.event import AddRenderProjectEvent
+from schemas.event import AddRenderProjectEvent, DLQMessage
 from services.project import ProjectService
 
 from infrastructure.database.core import session_factory
@@ -35,31 +39,62 @@ class KafkaConsumer(AbstractKafkaConsumer):
         await self._consumer.start()
         logger.info("Kafka consumer started")
 
-    async def _run(self, process_message_function: Callable[..., Any]) -> None:
+    async def _run(
+        self,
+        process_message_function: Callable[..., Any],
+        producer: AbstractKafkaProducer,
+    ) -> None:
         delay = 1
         while True:
             try:
                 await self._start()
-                assert self._consumer is not None
+                if self._consumer is None:
+                    detail = "Kafka consumer not started"
+                    raise RuntimeError(detail)  # noqa: TRY301
+
                 async for message in self._consumer:
-                    await process_message_function(message)
-                    await self._consumer.commit()
-                    delay = 1
+                    try:
+                        await process_message_function(message)
+                        await self._consumer.commit()
+                        delay = 1
+                    except DATABASE_CONNECTION_ERRORS:
+                        logger.exception("Database connection error")
+                        raise
+                    except S3_STORAGE_CONNECTION_ERRORS:
+                        logger.exception("S3 storage connection error")
+                        raise
+                    except Exception as error:
+                        logger.exception(
+                            "Failed to process message by kafka consumer",
+                        )
+                        dlq_message = DLQMessage(
+                            message=message.value,
+                            error=str(error),
+                        )
+                        await producer.send(
+                            topic=settings.kafka.topic.dead_letter_queue,
+                            value=dlq_message,
+                        )
+                        await self._consumer.commit()
+
             except KAFKA_CONNECTION_ERRORS:
                 logger.exception("Kafka consumer connection error")
                 await asyncio.sleep(delay)
-                delay *= 2
-            except Exception:
-                logger.exception(
-                    "Failed to process message by kafka consumer",
-                )
+                delay = min(delay * 2, 2 * 60)
+            except Exception:  # noqa: BLE001
+                await asyncio.sleep(delay)
+                delay = min(delay * 2, 2 * 60)
             finally:
                 if self._consumer is not None:
                     await self._consumer.stop()
                     self._consumer = None
 
-    async def run(self, process_message_function: Callable[..., Any]) -> None:
-        self._task = asyncio.create_task(self._run(process_message_function))
+    async def run(
+        self,
+        process_message_function: Callable[..., Any],
+        producer: AbstractKafkaProducer,
+    ) -> None:
+        self._task = asyncio.create_task(self._run(process_message_function, producer))
 
     async def stop(self) -> None:
         if self._task is not None:
@@ -77,7 +112,7 @@ class KafkaConsumer(AbstractKafkaConsumer):
             self._consumer = None
 
 
-async def process_message(message: ConsumerRecord) -> None:
+async def add_project_render(message: ConsumerRecord) -> None:
     json_data = message.value
     add_render_project_event = AddRenderProjectEvent.model_validate(
         json_data,

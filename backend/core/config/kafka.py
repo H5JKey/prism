@@ -10,6 +10,7 @@ class KafkaTopicConfig(BaseModel):
 class KafkaConfig(BaseModel):
     host: str = "kafka"
     port: int = 9092
+    group_id: str = "backend"
 
     @property
     def bootstrap_servers(self) -> str:
