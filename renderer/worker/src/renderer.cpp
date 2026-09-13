@@ -115,6 +115,7 @@ int main() try {
             sun.color = glm::vec3(task.sun.color[0], task.sun.color[1], task.sun.color[2]);
             sun.direction = glm::vec3(task.sun.direction[0], task.sun.direction[1], task.sun.direction[2]);
             sun.exponent = task.sun.exponent;
+            scene.setSun(sun);
 
             engine->renderFrame(*egl, scene, task.samples);
             if (!stopRequested) {
