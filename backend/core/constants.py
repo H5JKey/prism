@@ -1,11 +1,17 @@
 from enum import StrEnum
 
+import urllib3
 from aiokafka.errors import (
     BrokerNotAvailableError,
     KafkaConnectionError,
     KafkaTimeoutError,
     LeaderNotAvailableError,
     NodeNotReadyError,
+)
+from sqlalchemy.exc import (
+    DisconnectionError,
+    InterfaceError,
+    OperationalError,
 )
 
 USER_SURNAME_MIN_LENGTH = 3
@@ -71,6 +77,19 @@ KAFKA_CONNECTION_ERRORS = (
     BrokerNotAvailableError,
     NodeNotReadyError,
     LeaderNotAvailableError,
+)
+
+DATABASE_CONNECTION_ERRORS = (
+    OperationalError,
+    DisconnectionError,
+    InterfaceError,
+)
+
+S3_STORAGE_CONNECTION_ERRORS = (
+    urllib3.exceptions.NewConnectionError,
+    urllib3.exceptions.ConnectTimeoutError,
+    urllib3.exceptions.ReadTimeoutError,
+    urllib3.exceptions.ProtocolError,
 )
 
 

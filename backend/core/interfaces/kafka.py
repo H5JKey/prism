@@ -3,24 +3,6 @@ from collections.abc import Callable
 from typing import Any
 
 
-class AbstractKafkaConsumer(ABC):
-    """
-    Интерфейс для работы с кафка консюмером.
-    """
-
-    @abstractmethod
-    async def run(self, process_message_function: Callable[..., Any]) -> None:
-        """
-        Метод для запуска кафка консюмера.
-        """
-
-    @abstractmethod
-    async def stop(self) -> None:
-        """
-        Метод для остановки кафка консюмера.
-        """
-
-
 class AbstractKafkaProducer(ABC):
     """
     Интерфейс для работы с кафка продюсером.
@@ -49,4 +31,26 @@ class AbstractKafkaProducer(ABC):
     ) -> None:
         """
         Метод для отправки сообщения кафка продюсером.
+        """
+
+
+class AbstractKafkaConsumer(ABC):
+    """
+    Интерфейс для работы с кафка консюмером.
+    """
+
+    @abstractmethod
+    async def run(
+        self,
+        process_message_function: Callable[..., Any],
+        producer: AbstractKafkaProducer,
+    ) -> None:
+        """
+        Метод для запуска кафка консюмера.
+        """
+
+    @abstractmethod
+    async def stop(self) -> None:
+        """
+        Метод для остановки кафка консюмера.
         """
