@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
     std::string output = "output.png";
     bool debugImages = false;
     bool plane = true;
-    glm::vec3 backgroundColor;
+    glm::vec3 backgroundColor = glm::vec3(0,0,0);
     try {
         width = std::stoi(argv[1]);
         height = std::stoi(argv[2]);
