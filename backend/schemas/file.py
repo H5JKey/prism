@@ -20,10 +20,6 @@ class FileBase(BaseModel):
     model_config: ClassVar[ConfigDict] = ConfigDict(from_attributes=True)
 
 
-class FileLocation(BaseModel):
-    bucket: BucketConstraint
-
-
 class FileLocationCreate(BaseModel):
     """
     Схема для создания расположения файла в хранилище.

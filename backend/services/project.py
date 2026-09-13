@@ -22,7 +22,7 @@ from schemas.event import (
     EventCreate,
     GenerateRenderEvent,
 )
-from schemas.file import FileCreate, FileLocation, FileLocationCreate
+from schemas.file import FileCreate, FileLocationCreate
 from schemas.project import (
     ProjectPartialUpdate,
     ProjectResponse,
@@ -35,6 +35,13 @@ from schemas.project import (
 from schemas.render import RenderCreate
 
 logger = get_logger(__name__)
+
+
+def generate_output_key(input_key: str) -> str:
+    output_key_list = input_key.split(".")
+    output_key_list[-1] = "png"
+    output_key = ".".join(output_key_list)
+    return output_key
 
 
 class ProjectService:
@@ -227,8 +234,10 @@ class ProjectService:
             bucket=settings.minio.bucket.input,
             key=file.key,
         )
-        output_file_location = FileLocation(
+        output_key = generate_output_key(file.key)
+        output_file_location = FileLocationCreate(
             bucket=settings.minio.bucket.output,
+            key=output_key,
         )
         event = GenerateRenderEvent(
             project_id=project.id,

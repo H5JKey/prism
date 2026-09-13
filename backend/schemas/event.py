@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 from schemas.constraints.event import TopicConstraint
-from schemas.file import FileLocation, FileLocationCreate
+from schemas.file import FileLocationCreate
 from schemas.render import RenderCreatePayload
 
 
@@ -18,7 +18,7 @@ class GenerateRenderEvent(BaseModel):
 
     project_id: int
     input: FileLocationCreate
-    output: FileLocation
+    output: FileLocationCreate
     render: RenderCreatePayload
 
 
