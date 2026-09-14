@@ -58,6 +58,9 @@ layout(std430, binding = 7) buffer bvhTrianglesBuffer {
 
 layout(binding = 8) uniform sampler2DArray textureArray;
 
+layout(rgba32f, binding = 9) uniform image2D statisticsTexture;
+layout(rgba32f, binding = 10) uniform image2D heatMap;
+
 uniform vec3 uOrigin;
 uniform float uFov;
 uniform vec3 uLookAt;
@@ -434,6 +437,20 @@ vec3 traceRay(vec3 origin, vec3 direction, uint seed) {
 }
 
 
+vec3 heatColor(float error) {
+    float t = clamp(log(error + 1e-8) / log(0.1) , 0.0, 1.0);
+    t = 1.0 - t;
+
+    vec3 c0 = vec3(0.0, 0.0, 0.3);
+    vec3 c1 = vec3(0.0, 0.6, 1.0);
+    vec3 c2 = vec3(1.0, 1.0, 0.0);
+    vec3 c3 = vec3(1.0, 0.0, 0.0);
+
+    if (t < 1.0/3.0) return mix(c0, c1, t * 3.0);
+    if (t < 2.0/3.0) return mix(c1, c2, (t - 1.0/3.0) * 3.0);
+    return mix(c2, c3, (t - 2.0/3.0) * 3.0);
+}
+
 void main() {
     ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
     ivec2 size =  imageSize(outputImage);
@@ -466,8 +483,41 @@ void main() {
     
     vec3 direction = normalize(forward + right * uFov * uv.x + up * uFov * uv.y);
 
-    vec3 color = traceRay(uOrigin, direction, seed);
+    float M2, mean;
+    int N;
+    if (uFrameIndex == 0) {
+        M2 = 0.0;
+        mean = 0.0;
+        N = 0;
+    } else {
+        vec3 stat = imageLoad(statisticsTexture, pixel).rgb;
+        mean = stat.r;
+        M2 = stat.g;
+        N = int(stat.b);
+    }
 
-    color = mix(oldColor, color, 1.0 / (uFrameIndex + 1));
+    float variance = 0.0;
+    float error = 0.0;
+    if (N >= 2) {
+        variance = M2 / float(N - 1);
+        error = sqrt(variance / float(N)) / (abs(mean) + 0.0001);
+    }
+    imageStore(heatMap, pixel, vec4(heatColor(error), 1.0));
+
+    if (N >= 32 && error < 0.01) {
+        return;
+    }
+
+    vec3 color = traceRay(uOrigin, direction, seed);
+    float luminance = dot(color, vec3(0.2126, 0.7152, 0.0722));
+
+    N = N + 1;
+    float delta = luminance - mean;
+    mean += delta / float(N);
+    M2 += delta * (luminance - mean);
+
+    imageStore(statisticsTexture, pixel, vec4(mean, M2, float(N), 1.0));
+
+    color = mix(oldColor, color, 1.0 / float(N));
     imageStore(outputImage, pixel, vec4(color, 1.0));
 }

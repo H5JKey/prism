@@ -19,6 +19,16 @@ EglTarget::EglTarget(int width, int height, EGLDisplay display, EGLConfig config
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
         glBindTexture(GL_TEXTURE_2D, 0);
 
+        glGenTextures(1, &statisticsTexture);
+        glBindTexture(GL_TEXTURE_2D, statisticsTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        glGenTextures(1, &heatMap);
+        glBindTexture(GL_TEXTURE_2D, heatMap);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
         glGenTextures(1, &denoisedTexture);
         glBindTexture(GL_TEXTURE_2D, denoisedTexture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
@@ -69,5 +79,7 @@ EglTarget::~EglTarget() {
         glDeleteTextures(1, &rawTexture);
         glDeleteTextures(1, &normalMap);
         glDeleteTextures(1, &albedoMap);
+        glDeleteTextures(1, &statisticsTexture);
+        glDeleteTextures(1, &heatMap);
     }
 }

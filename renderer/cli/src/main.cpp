@@ -197,6 +197,10 @@ int main(int argc, char* argv[]) {
                                          (absoluteDirectoryPath / (outputFilename + "-normal.png")).string()));
                 utils::writeToPng(egl->getBufferData<float>(egl->getNormalMap()), egl->getWidth(), egl->getHeight(), 4,
                                   absoluteDirectoryPath / (outputFilename + "-normal.png"));
+                logger.debug(std::format("Writing into {}",
+                                         (absoluteDirectoryPath / (outputFilename + "-heatMap.png")).string()));
+                utils::writeToPng(egl->getBufferData<float>(egl->getHeatMap()), egl->getWidth(), egl->getHeight(), 4,
+                                  absoluteDirectoryPath / (outputFilename + "-heatMap.png"));
             }
         }
         logger.info("Renderer application stopped successfully");
