@@ -17,6 +17,22 @@
   </tr>
 </table>
 
+<table>
+  <tr>
+    <th>Result</th>
+    <th>Raw</th>
+    <th>Albedo</th>
+    <th>Normals</th>
+    <th>Heatmap</th>
+  </tr>
+  <tr>
+    <td><img src="images/fox.png" alt="result" width="300"></td>
+    <td><img src="images/fox-raw.png" alt="raw" width="300"></td>
+    <td><img src="images/fox-albedo.png" alt="albedo" width="300"></td>
+    <td><img src="images/fox-normal.png" alt="normal" width="300"></td>
+    <td><img src="images/fox-heat.png" alt="heatmap" width="300"></td>
+  </tr>
+</table>
 
 ---
 
@@ -113,7 +129,7 @@ docker run --rm renderer renderer_cli <width> <height> <samples> <input_scene> [
 | `-h, --help` | `-` | Show help message |
 | `-o, --output` | `string` | Output image path (default: output.png) |
 | `-v, --verbose` | `-` | Enable detailed logging |
-| `-d, --debug` | `-` | Save debug images (raw, albedo, normals) |
+| `-d, --debug` | `-` | Save debug images (raw, albedo, normals, heatmap) |
 | `-p, --plane` | `float` | Add ground plane at scene center with specified size |
 | `-c, --camera` | `vec3 vec3 float` | Set camera: `position lookAt fov` |
 | `-B, --background` | `vec3` | Set background color (default: vec3(0,0,0)) |
