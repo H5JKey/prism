@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, ClassVar, Self
 
+from core.config.application import settings
 from core.constants import ProjectVisibility, RenderStatus
 from infrastructure.database.models import Project, Render
 from pydantic import BaseModel, ConfigDict
@@ -92,7 +93,7 @@ class ProjectWithRenderFileFullResponse(ProjectFullResponse):
         source_file_url = await s3_client.generate_presigned_url(
             bucket=project.source_file.bucket,
             key=project.source_file.key,
-            expires_in=10 * 60,
+            expires_in=settings.minio.presigned_url_ttl_seconds,
             client_method="get_object",
         )
 
@@ -101,7 +102,7 @@ class ProjectWithRenderFileFullResponse(ProjectFullResponse):
             render_file_url = await s3_client.generate_presigned_url(
                 bucket=project.render.file.bucket,
                 key=project.render.file.key,
-                expires_in=10 * 60,
+                expires_in=settings.minio.presigned_url_ttl_seconds,
                 client_method="get_object",
             )
             render.url = render_file_url.replace("minio", "localhost")
