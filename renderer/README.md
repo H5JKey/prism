@@ -4,7 +4,7 @@
 
 ---
 
-## Demos
+## Renders
 
 <table>
   <tr>
@@ -17,20 +17,31 @@
   </tr>
 </table>
 
+---
+
+## Diagnostics
+
 <table>
   <tr>
     <th>Result</th>
     <th>Raw</th>
+  </tr>
+  <tr>
+    <td><img src="images/fox.png" alt="result" width="500"></td>
+    <td><img src="images/fox-raw.png" alt="raw" width="500"></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
     <th>Albedo</th>
     <th>Normals</th>
     <th>Heatmap</th>
   </tr>
   <tr>
-    <td><img src="images/fox.png" alt="result" width="300"></td>
-    <td><img src="images/fox-raw.png" alt="raw" width="300"></td>
-    <td><img src="images/fox-albedo.png" alt="albedo" width="300"></td>
-    <td><img src="images/fox-normal.png" alt="normal" width="300"></td>
-    <td><img src="images/fox-heat.png" alt="heatmap" width="300"></td>
+    <td><img src="images/fox-albedo.png" alt="albedo" width="330"></td>
+    <td><img src="images/fox-normal.png" alt="normal" width="330"></td>
+    <td><img src="images/fox-heat.png" alt="heatmap" width="330"></td>
   </tr>
 </table>
 
