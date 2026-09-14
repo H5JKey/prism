@@ -182,6 +182,7 @@ void RenderEngine::pathTracing(RenderTarget& target, const Scene::Camera& camera
     logger.info("Path tracing started");
 
     glUseProgram(pathTracingProgram);
+    glBindImageTexture(0, target.getRawTexture(), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, vertexSSBO);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, texCoordSSBO);
@@ -192,6 +193,9 @@ void RenderEngine::pathTracing(RenderTarget& target, const Scene::Camera& camera
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, bvhTrianglesSSBO);
     glBindTextureUnit(8, textureArray);
 
+    glBindImageTexture(9, target.getStatisticsTexture(), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+    glBindImageTexture(10, target.getHeatMap(), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+
     glUniform3f(glGetUniformLocation(pathTracingProgram, "uOrigin"), camera.origin.x, camera.origin.y, camera.origin.z);
     glUniform3f(glGetUniformLocation(pathTracingProgram, "uLookAt"), camera.lookAt.x, camera.lookAt.y, camera.lookAt.z);
     glUniform3f(glGetUniformLocation(pathTracingProgram, "uBackgroundColor"), backgroundColor.r, backgroundColor.g,
@@ -201,8 +205,6 @@ void RenderEngine::pathTracing(RenderTarget& target, const Scene::Camera& camera
     glUniform3f(glGetUniformLocation(pathTracingProgram, "uSun.direction"), sun.direction.x, sun.direction.y,
                 sun.direction.z);
     glUniform1f(glGetUniformLocation(pathTracingProgram, "uSun.exponent"), sun.exponent);
-
-    glBindImageTexture(0, target.getRawTexture(), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
     int groupsX = (target.getWidth() + 15) / 16;
     int groupsY = (target.getHeight() + 15) / 16;

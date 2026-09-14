@@ -25,7 +25,7 @@ void printHelp(std::string_view programName) {
     std::println(" -h, --help          Shows this help message");
     std::println(" -o, --output        Output image path (default: output.png)");
     std::println(" -v, --verbose       Print detailed logs");
-    std::println(" -d, --debug         Output debug images: raw, albedo, normals");
+    std::println(" -d, --debug         Output debug images: raw, albedo, normals, heatmap");
     std::println(" -p, --plane         Add plane to scene");
     std::println(" -c, --camera        Set camera properties: origin, direction, fov");
     std::println(" -B, --background    Set background color (default: vec3(0,0,0))");
@@ -197,6 +197,10 @@ int main(int argc, char* argv[]) {
                                          (absoluteDirectoryPath / (outputFilename + "-normal.png")).string()));
                 utils::writeToPng(egl->getBufferData<float>(egl->getNormalMap()), egl->getWidth(), egl->getHeight(), 4,
                                   absoluteDirectoryPath / (outputFilename + "-normal.png"));
+                logger.debug(
+                    std::format("Writing into {}", (absoluteDirectoryPath / (outputFilename + "-heat.png")).string()));
+                utils::writeToPng(egl->getBufferData<float>(egl->getHeatMap()), egl->getWidth(), egl->getHeight(), 4,
+                                  absoluteDirectoryPath / (outputFilename + "-heat.png"));
             }
         }
         logger.info("Renderer application stopped successfully");

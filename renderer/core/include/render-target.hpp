@@ -20,7 +20,9 @@ class RenderTarget {
     int width, height;
     bool initialized = false;
     GLuint rawTexture;
+    GLuint statisticsTexture;
     GLuint denoisedTexture;
+    GLuint heatMap;
     GLuint outputTexture;
     GLuint normalMap;
     GLuint albedoMap;
@@ -35,7 +37,9 @@ class RenderTarget {
     GLuint getRawTexture() const noexcept { return rawTexture; }
     GLuint getDenoisedTexture() const noexcept { return denoisedTexture; }
     GLuint getOutputTexture() const noexcept { return outputTexture; }
+    GLuint getHeatMap() const noexcept { return heatMap; }
     GLuint getNormalMap() const noexcept { return normalMap; }
+    GLuint getStatisticsTexture() const noexcept { return statisticsTexture; }
     GLuint getAlbedoMap() const noexcept { return albedoMap; }
 
     template <typename T>
