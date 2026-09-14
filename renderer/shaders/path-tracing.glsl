@@ -437,19 +437,32 @@ vec3 traceRay(vec3 origin, vec3 direction, uint seed) {
 }
 
 
-vec3 heatColor(float error) {
-    float t = clamp(log(error + 1e-8) / log(0.1) , 0.0, 1.0);
-    t = 1.0 - t;
-
-    vec3 c0 = vec3(0.0, 0.0, 0.3);
-    vec3 c1 = vec3(0.0, 0.6, 1.0);
-    vec3 c2 = vec3(1.0, 1.0, 0.0);
-    vec3 c3 = vec3(1.0, 0.0, 0.0);
-
-    if (t < 1.0/3.0) return mix(c0, c1, t * 3.0);
-    if (t < 2.0/3.0) return mix(c1, c2, (t - 1.0/3.0) * 3.0);
-    return mix(c2, c3, (t - 2.0/3.0) * 3.0);
+vec3 heatColor(float x) {
+    x = clamp(x, 0.0f, 1.0f);
+    float r = 0.13572138f
+            + x * (4.61539260
+            + x * (-42.66032258
+            + x * (132.13108234
+            + x * (-152.94239396
+            + x * 59.28637943))));
+    float g = 0.09140261 + x * (2.19418839
+            + x * (4.84296658
+            + x * (-14.18503333
+            + x * (4.27729857
+            + x * 2.82956604))));
+    float b = 0.10667330
+            + x * (12.64194608
+            + x * (-60.58204836
+            + x * (110.36276771
+            + x * (-89.90310912
+            + x * 27.34824973))));
+    return vec3(
+        clamp(r, 0.0, 1.0),
+        clamp(g, 0.0, 1.0),
+        clamp(b, 0.0, 1.0)
+    );
 }
+
 
 void main() {
     ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
