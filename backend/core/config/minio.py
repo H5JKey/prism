@@ -13,6 +13,7 @@ class MinioConfig(BaseModel):
     password: str = "adminadmin"
 
     bucket: MinioBucketConfig = MinioBucketConfig()
+    presigned_url_ttl_seconds: int = 10 * 60
 
     @property
     def url(self) -> str:

@@ -12,6 +12,9 @@ class KafkaConfig(BaseModel):
     port: int = 9092
     group_id: str = "backend"
 
+    base_delay_seconds: float = 1
+    max_delay_seconds: float = 2 * 60
+
     @property
     def bootstrap_servers(self) -> str:
         return f"{self.host}:{self.port}"

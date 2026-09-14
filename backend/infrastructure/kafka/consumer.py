@@ -41,10 +41,10 @@ class KafkaConsumer(AbstractKafkaConsumer):
 
     async def _run(
         self,
-        process_message_function: Callable[..., Any],
+        callback: Callable[..., Any],
         producer: AbstractKafkaProducer,
     ) -> None:
-        delay = 1
+        delay = settings.kafka.base_delay_seconds
         while True:
             try:
                 await self._start()
@@ -54,9 +54,9 @@ class KafkaConsumer(AbstractKafkaConsumer):
 
                 async for message in self._consumer:
                     try:
-                        await process_message_function(message)
+                        await callback(message)
                         await self._consumer.commit()
-                        delay = 1
+                        delay = settings.kafka.base_delay_seconds
                     except DATABASE_CONNECTION_ERRORS:
                         logger.exception("Database connection error")
                         raise
@@ -80,10 +80,10 @@ class KafkaConsumer(AbstractKafkaConsumer):
             except KAFKA_CONNECTION_ERRORS:
                 logger.exception("Kafka consumer connection error")
                 await asyncio.sleep(delay)
-                delay = min(delay * 2, 2 * 60)
+                delay = min(2 * delay, settings.kafka.max_delay_seconds)
             except Exception:  # noqa: BLE001
                 await asyncio.sleep(delay)
-                delay = min(delay * 2, 2 * 60)
+                delay = min(2 * delay, settings.kafka.max_delay_seconds)
             finally:
                 if self._consumer is not None:
                     await self._consumer.stop()
@@ -102,7 +102,7 @@ class KafkaConsumer(AbstractKafkaConsumer):
             try:
                 await self._task
             except CancelledError:
-                logger.exception("Kafka consumer task cancelled")
+                logger.warning("Kafka consumer task cancelled")
             except Exception:
                 logger.exception("Cancellation of the Kafka consumer task failed")
             self._task = None
