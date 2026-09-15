@@ -1,4 +1,3 @@
-
 from api import router as api_router
 from api.exception_handlers import register_exception_handlers
 from api.main_views import router as main_router
