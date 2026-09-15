@@ -31,7 +31,8 @@ package-mode = false
 dev = [
     "ruff (>=0.15.22,<0.16.0)",
     "mypy (>=2.3.0,<3.0.0)",
-    "black (==26.5.1)"
+    "black (==26.5.1)",
+    "pytest-asyncio (>=1.4.0,<2.0.0)"
 ]
 
 
