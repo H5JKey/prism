@@ -1,5 +1,8 @@
 from logging import Formatter, Logger, StreamHandler, getLogger
 
+from fastapi import FastAPI
+from prometheus_fastapi_instrumentator import Instrumentator
+
 from core.config.application import settings
 
 
@@ -13,6 +16,14 @@ def configure_logging() -> None:
     handler = StreamHandler()
     handler.setFormatter(formatter)
     logger.addHandler(hdlr=handler)
+
+
+def configure_grafana(app: FastAPI) -> None:
+    Instrumentator(
+        should_instrument_requests_inprogress=True,
+        inprogress_name="http_requests_inprogress",
+        inprogress_labels=True,
+    ).instrument(app).expose(app)
 
 
 def get_logger(name: str) -> Logger:

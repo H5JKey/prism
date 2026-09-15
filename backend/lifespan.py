@@ -2,7 +2,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from core.config.application import settings
-from core.logging import configure_logging, get_logger
+from core.logging import get_logger
 from fastapi import FastAPI
 from infrastructure.kafka.consumer import (
     KafkaConsumer,
@@ -16,7 +16,6 @@ logger = get_logger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:  # noqa: ARG001
-    configure_logging()
     producer = KafkaProducer(
         bootstrap_servers=settings.kafka.bootstrap_servers,
         value_serializer=serialize_message,
