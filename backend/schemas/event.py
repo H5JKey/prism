@@ -11,7 +11,16 @@ class EventBase(BaseModel):
     """
 
 
-class GenerateRenderEvent(BaseModel):
+class EventCreate(EventBase):
+    """
+    Схема для создания записи о событии в outbox.
+    """
+
+    topic: TopicConstraint
+    message: dict  # type: ignore[type-arg]
+
+
+class CreateProjectEvent(BaseModel):
     """
     Схема для события генерация проекта.
     """
@@ -20,15 +29,6 @@ class GenerateRenderEvent(BaseModel):
     input: FileLocationCreate
     output: FileLocationCreate
     render: RenderCreatePayload
-
-
-class EventCreate(EventBase):
-    """
-    Схема для создания записи о событии в outbox.
-    """
-
-    topic: TopicConstraint
-    message: dict  # type: ignore[type-arg]
 
 
 class RenderGeneratedEvent(BaseModel):
