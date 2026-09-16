@@ -18,8 +18,8 @@ from infrastructure.database.repositories import (
     UserRepository,
 )
 from schemas.event import (
+    CreateProjectEvent,
     EventCreate,
-    GenerateRenderEvent,
     RenderGeneratedEvent,
 )
 from schemas.file import FileCreate, FileLocationCreate
@@ -239,7 +239,7 @@ class ProjectService:
             bucket=settings.minio.bucket.renders,
             key=output_key,
         )
-        event = GenerateRenderEvent(
+        event = CreateProjectEvent(
             project_id=project.id,
             input=input_file_location,
             output=output_file_location,
