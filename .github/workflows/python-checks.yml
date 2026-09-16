@@ -40,3 +40,31 @@ jobs:
 
       - name: run ruff
         run: ruff check
+
+  testing:
+    needs:
+      - lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - name: clone git repository
+        uses: actions/checkout@v4
+
+      - name: install python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.13
+
+      - name: install poetry
+        run: pip install poetry
+
+      - name: config poetry
+        run: poetry config virtualenvs.create false
+
+      - name: install dependencies
+        run: poetry install --dev
+
+      - name: run tests
+        run: pytest -sv
