@@ -15,7 +15,7 @@ def event_create_data() -> dict:
 
 
 @pytest.fixture
-def file_data() -> dict:
+def file_location_data() -> dict:
     return {
         "bucket": "test_bucket",
         "key": "test_key",
@@ -40,22 +40,22 @@ def render_data() -> dict:
 
 
 @pytest.fixture
-def create_project_event_data(file_data: dict, render_data: dict) -> dict:
+def create_project_event_data(file_location_data: dict, render_data: dict) -> dict:
     return {
         "project_id": 1,
-        "input": file_data,
-        "output": file_data,
+        "input": file_location_data,
+        "output": file_location_data,
         "render": render_data,
     }
 
 
 @pytest.fixture
 def render_generated_event_data(
-    file_data,
+    file_location_data,
 ) -> dict:
     return {
         "project_id": 1,
-        "output": file_data,
+        "output": file_location_data,
     }
 
 
