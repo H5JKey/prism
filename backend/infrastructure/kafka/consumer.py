@@ -12,7 +12,7 @@ from core.constants import (
 )
 from core.interfaces.kafka import AbstractKafkaConsumer, AbstractKafkaProducer
 from core.logging import get_logger
-from schemas.event import AddRenderProjectEvent, DLQMessage
+from schemas.event import DLQMessage, RenderGeneratedEvent
 from services.project import ProjectService
 
 from infrastructure.database.core import session_factory
@@ -91,10 +91,10 @@ class KafkaConsumer(AbstractKafkaConsumer):
 
     async def run(
         self,
-        process_message_function: Callable[..., Any],
+        callback: Callable[..., Any],
         producer: AbstractKafkaProducer,
     ) -> None:
-        self._task = asyncio.create_task(self._run(process_message_function, producer))
+        self._task = asyncio.create_task(self._run(callback, producer))
 
     async def stop(self) -> None:
         if self._task is not None:
@@ -112,13 +112,13 @@ class KafkaConsumer(AbstractKafkaConsumer):
             self._consumer = None
 
 
-async def add_project_render(message: ConsumerRecord) -> None:
+async def consume_render_generated(message: ConsumerRecord) -> None:
     json_data = message.value
-    add_render_project_event = AddRenderProjectEvent.model_validate(
+    render_generated_event = RenderGeneratedEvent.model_validate(
         json_data,
     )
-    logger.info("Received message, %s", add_render_project_event)
-    project_id = add_render_project_event.project_id
+    logger.info("Received message, %s", render_generated_event)
+    project_id = render_generated_event.project_id
     minio_session = get_minio_session()
     async with (
         session_factory() as session,
@@ -131,7 +131,7 @@ async def add_project_render(message: ConsumerRecord) -> None:
         MinioClient(client) as s3_client,
     ):
         await project_service.update_project_status(project_id)
-        await project_service.add_render_to_project(
-            add_render_project_event,
+        await project_service.handle_render_generated(
+            render_generated_event,
             s3_client,
         )

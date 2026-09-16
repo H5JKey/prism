@@ -2,8 +2,8 @@ from pydantic import BaseModel
 
 
 class MinioBucketConfig(BaseModel):
-    input: str = "input"
-    output: str = "output"
+    glb_sources: str = "input"
+    renders: str = "output"
 
 
 class MinioConfig(BaseModel):

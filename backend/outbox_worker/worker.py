@@ -42,7 +42,7 @@ class OutboxWorker:
 
         logger.info("Received message, message=%s", event.message)
         await self.outbox_repository.mark_event_as_sent(event.id)
-        topic = settings.kafka.topic.create_project
+        topic = settings.kafka.topic.project_created
         await self.producer.send(
             topic=topic,
             value=event.message,

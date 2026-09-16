@@ -18,9 +18,9 @@ from infrastructure.database.repositories import (
     UserRepository,
 )
 from schemas.event import (
-    AddRenderProjectEvent,
     EventCreate,
     GenerateRenderEvent,
+    RenderGeneratedEvent,
 )
 from schemas.file import FileCreate, FileLocationCreate
 from schemas.project import (
@@ -153,13 +153,13 @@ class ProjectService:
             page=page,
         )
 
-    async def add_render_to_project(
+    async def handle_render_generated(
         self,
-        add_render_project_event: AddRenderProjectEvent,
+        render_generated_event: RenderGeneratedEvent,
         s3_client: AbstractS3Client,
     ) -> None:
-        project_id = add_render_project_event.project_id
-        file_location = add_render_project_event.output
+        project_id = render_generated_event.project_id
+        file_location = render_generated_event.output
         bucket = file_location.bucket
         key = file_location.key
 
@@ -225,18 +225,18 @@ class ProjectService:
             create_full_render_data.model_dump(),
         )
         render = await self.render_repository.create_render(create_render_data)
-        project = await self.project_repository.create_project(
+        project = await self.project_repository.project_created(
             user_id=user_id,
             render_id=render.id,
             create_project_data=create_project_data,
         )
         input_file_location = FileLocationCreate(
-            bucket=settings.minio.bucket.input,
+            bucket=settings.minio.bucket.glb_sources,
             key=file.key,
         )
         output_key = generate_output_key(file.key)
         output_file_location = FileLocationCreate(
-            bucket=settings.minio.bucket.output,
+            bucket=settings.minio.bucket.renders,
             key=output_key,
         )
         event = GenerateRenderEvent(
@@ -246,7 +246,7 @@ class ProjectService:
             render=create_full_render_data,
         )
         event_create_data = EventCreate(
-            topic=settings.kafka.topic.create_project,
+            topic=settings.kafka.topic.project_created,
             message=event.model_dump(),
         )
         await self.outbox_repository.create_event(event_create_data)

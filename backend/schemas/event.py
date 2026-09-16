@@ -22,7 +22,7 @@ class GenerateRenderEvent(BaseModel):
     render: RenderCreatePayload
 
 
-class EventCreate(BaseModel):
+class EventCreate(EventBase):
     """
     Схема для создания записи о событии в outbox.
     """
@@ -31,9 +31,9 @@ class EventCreate(BaseModel):
     message: dict  # type: ignore[type-arg]
 
 
-class AddRenderProjectEvent(BaseModel):
+class RenderGeneratedEvent(BaseModel):
     """
-    Схема для события загрузка готового рендера в проект.
+    Схема для события рендер завершен.
     """
 
     project_id: int
