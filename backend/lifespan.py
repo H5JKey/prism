@@ -6,7 +6,7 @@ from core.logging import get_logger
 from fastapi import FastAPI
 from infrastructure.kafka.consumer import (
     KafkaConsumer,
-    add_project_render,
+    consume_render_generated,
 )
 from infrastructure.kafka.producer import KafkaProducer
 from infrastructure.kafka.utils import deserialize_message, serialize_message
@@ -22,7 +22,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:  # noqa: ARG001
     )
     await producer.start()
     consumer = KafkaConsumer(
-        settings.kafka.topic.generate_render,
+        settings.kafka.topic.render_generated,
         bootstrap_servers=settings.kafka.bootstrap_servers,
         group_id=settings.kafka.group_id,
         value_deserializer=deserialize_message,
@@ -30,7 +30,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:  # noqa: ARG001
         enable_auto_commit=False,
     )
     await consumer.run(
-        process_message_function=add_project_render,
+        callback=consume_render_generated,
         producer=producer,
     )
     logger.info("Application started")

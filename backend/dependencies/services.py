@@ -28,7 +28,7 @@ async def get_input_file_uploader(
     ],
 ) -> AsyncGenerator[FileUploader]:
     file_uploader = FileUploader(
-        bucket=settings.minio.bucket.input,
+        bucket=settings.minio.bucket.glb_sources,
         s3_client=s3_client,
         unit_of_work=unit_of_work,
     )
