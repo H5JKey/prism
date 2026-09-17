@@ -93,7 +93,11 @@ class TestUserBase:
         with pytest.raises(ValidationError) as exc_info:
             UserBase(**user_base_data)
 
-        assert_validation_error(exc_info, expected_error, field,)
+        assert_validation_error(
+            exc_info,
+            expected_error,
+            field,
+        )
 
     @pytest.mark.parametrize(
         "field, value",
@@ -143,7 +147,11 @@ class TestUserCreate:
         with pytest.raises(ValidationError) as exc_info:
             UserCreate(**user_create_data)
 
-        assert_validation_error(exc_info, expected_error, field,)
+        assert_validation_error(
+            exc_info,
+            expected_error,
+            field,
+        )
 
     @pytest.mark.parametrize(
         "field, value",
@@ -230,7 +238,11 @@ class TestUserResponse:
         with pytest.raises(ValidationError) as exc_info:
             UserResponse(**user_response_data)
 
-        assert_validation_error(exc_info, "missing", field,)
+        assert_validation_error(
+            exc_info,
+            "missing",
+            field,
+        )
 
 
 class TestUserFullResponse:
