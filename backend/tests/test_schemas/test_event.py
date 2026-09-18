@@ -95,7 +95,11 @@ class TestCreateProjectEvent:
         with pytest.raises(ValidationError) as exc_info:
             CreateProjectEvent.model_validate(create_project_event_data)
 
-        assert_validation_error(exc_info, "missing", field)
+        assert_validation_error(
+            exc_info,
+            "missing",
+            field,
+        )
 
 
 class TestRenderGeneratedEvent:

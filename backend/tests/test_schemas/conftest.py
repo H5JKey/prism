@@ -70,3 +70,23 @@ def dlq_message_data() -> dict:
             "field4": True,
         },
     }
+
+
+@pytest.fixture
+def file_base_data() -> dict:
+    return {
+        "name": "file_name",
+        "size": 1000,
+    }
+
+
+@pytest.fixture
+def file_create_data(file_base_data: dict, file_location_data: dict) -> dict:
+    data = {**file_base_data, **file_location_data}
+    return data
+
+
+@pytest.fixture
+def file_response_data(file_base_data: dict) -> dict:
+    file_base_data["id"] = 1
+    return file_base_data

@@ -56,7 +56,7 @@ class RenderResponse(RenderBase):
     Схема для вывода информации о рендере.
     """
 
-    file_id: int | None
+    file_id: int | None = None
     id: int
 
 
@@ -65,7 +65,7 @@ class RenderWithFileResponse(RenderResponse):
     Схема для вывода информации о рендере вместе с файлом.
     """
 
-    file: FileResponse | None
+    file: FileResponse | None = None
 
 
 class RenderFullResponse(RenderResponse):
@@ -81,4 +81,4 @@ class RenderWithFileFullResponse(RenderFullResponse):
     Схема для вывода информации о рендере вместе с файлом и ссылкой на файл.
     """
 
-    file: FileResponse | None
+    file: FileResponse | None = None
