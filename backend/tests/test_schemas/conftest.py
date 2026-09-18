@@ -90,3 +90,77 @@ def file_create_data(file_base_data: dict, file_location_data: dict) -> dict:
 def file_response_data(file_base_data: dict) -> dict:
     file_base_data["id"] = 1
     return file_base_data
+
+
+@pytest.fixture
+def sun_info_data() -> dict:
+    return {
+        "direction": [1.0, 1.0, 1.0],
+        "color": [2.0, 2.0, 2.0],
+        "exponent": 5,
+    }
+
+
+@pytest.fixture
+def render_base_data() -> dict:
+    return {
+        "width": 1000,
+        "height": 1000,
+        "samples": 150,
+        "denoiser": True,
+        "gpu": False,
+    }
+
+
+@pytest.fixture
+def render_create_data(render_base_data: dict) -> dict:
+    return {
+        **render_base_data,
+    }
+
+
+@pytest.fixture
+def render_create_payload_data(render_create_data: dict, sun_info_data: dict) -> dict:
+    return {
+        **render_create_data,
+        "background": [1.0, 1.0, 1.0],
+        "sun": sun_info_data,
+    }
+
+
+@pytest.fixture
+def render_response_data(render_base_data: dict) -> dict:
+    return {
+        **render_base_data,
+        "id": 1,
+        "file_id": 1,
+    }
+
+
+@pytest.fixture
+def render_full_response_data(render_response_data: dict) -> dict:
+    return {
+        **render_response_data,
+        "url": "http://example.com",
+    }
+
+
+@pytest.fixture
+def render_with_file_response_data(
+    render_response_data: dict, file_response_data: dict
+) -> dict:
+    return {
+        **render_response_data,
+        "file": file_response_data,
+    }
+
+
+@pytest.fixture
+def render_with_file_full_response_data(
+    render_full_response_data: dict,
+    file_response_data: dict,
+) -> dict:
+    return {
+        **render_full_response_data,
+        "file": file_response_data,
+    }
