@@ -115,7 +115,7 @@ services:
     restart: on-failure
 
   minio:
-    image: minio/minio
+    image: quay.io/minio/minio
     container_name: minio
     hostname: minio
     command: server --console-address ":9001" /data

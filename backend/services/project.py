@@ -225,7 +225,7 @@ class ProjectService:
             create_full_render_data.model_dump(),
         )
         render = await self.render_repository.create_render(create_render_data)
-        project = await self.project_repository.project_created(
+        project = await self.project_repository.create_project(
             user_id=user_id,
             render_id=render.id,
             create_project_data=create_project_data,
