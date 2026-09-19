@@ -105,12 +105,12 @@ class ProjectWithRenderFileFullResponse(ProjectFullResponse):
                 expires_in=settings.minio.presigned_url_ttl_seconds,
                 client_method="get_object",
             )
-            render.url = render_file_url.replace("minio", "localhost")
+            render.url = render_file_url.replace(settings.minio.host, "localhost")
 
         return cls(
             **project_response.model_dump(),
             render=render,
-            url=source_file_url.replace("minio", "localhost"),
+            url=source_file_url.replace(settings.minio.host, "localhost"),
         )
 
 
@@ -145,15 +145,5 @@ class ProjectResponseList(BaseModel):
     """
 
     project_list: list[ProjectResponse]
-    size: SizeConstraint
-    page: PageConstraint
-
-
-class ProjectWithRenderFileResponseList(BaseModel):
-    """
-    Схема для вывода информации о списке проектов с рендером.
-    """
-
-    project_list: list[ProjectWithRenderFileResponse]
     size: SizeConstraint
     page: PageConstraint
