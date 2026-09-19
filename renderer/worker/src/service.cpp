@@ -90,25 +90,7 @@ void signalHandler(int signal) {
     }
 }
 
-Logger logger("SERVICE");
-int main() try {
-    struct sigaction sa;
-    sa.sa_handler = signalHandler;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = 0;
-    sigaction(SIGTERM, &sa, nullptr);
-    sigaction(SIGINT, &sa, nullptr);
-    sa.sa_handler = SIG_IGN;
-    sigaction(SIGPIPE, &sa, nullptr);
-
-    env::dotenv dotenv(".env");
-    Config config;
-    config.apply(dotenv);
-    config.fromEnvironment();
-
-    Logger::showDebug = config.logDebug();
-    Logger::setMinLevel(config.logLevel());
-
+int execRenderer(const Config& config) {
     PipeDescriptor tasksPipe;
     PipeDescriptor resultPipe;
     tasksPipe.create();
@@ -142,6 +124,29 @@ int main() try {
     ::dup2(tasksPipe.write_fd, STDOUT_FILENO);
     resultPipe.close_read();
     tasksPipe.close_write();
+    return renderer_pid;
+}
+
+Logger logger("SERVICE");
+int main() try {
+    struct sigaction sa;
+    sa.sa_handler = signalHandler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    sigaction(SIGTERM, &sa, nullptr);
+    sigaction(SIGINT, &sa, nullptr);
+    sa.sa_handler = SIG_IGN;
+    sigaction(SIGPIPE, &sa, nullptr);
+
+    env::dotenv dotenv(".env");
+    Config config;
+    config.apply(dotenv);
+    config.fromEnvironment();
+
+    Logger::showDebug = config.logDebug();
+    Logger::setMinLevel(config.logLevel());
+
+    renderer_pid = execRenderer(config);
 
     Aws::InitAPI(options);
     logger.debug(std::format("Aws initialized"));
@@ -153,6 +158,13 @@ int main() try {
 
     logger.info(std::format("Listening for messages..."));
     while (running) {
+        int status;
+        pid_t result = waitpid(renderer_pid, &status, WNOHANG);
+        if (result == renderer_pid) {
+            logger.error("Renderer died. Restarting renderer");
+            renderer_pid = execRenderer(config);
+            throw std::runtime_error("Renderer died");
+        }
         json inputJson;
         int project_id = -1;
         std::string inputBucket, outputBucket, inputKey, outputKey;
@@ -191,7 +203,13 @@ int main() try {
             task.sun.exponent = inputJson["render"]["sun"]["exponent"];
         } catch (const std::exception& e) {
             logger.error(std::format("Failed to parse json from string: {}. Error: {}", message, e.what()));
-            throw;
+            taskConsumer.commit();
+            json deadLetter;
+            deadLetter["project_id"] = project_id;
+            deadLetter["reason"] = e.what();
+            producer.produce(config.kafkaTopicDLQ(), deadLetter.dump());
+            logger.error("Failed to process message. Listening...");
+            continue;
         }
         if (config.preview()) {
             task.height = 200 * (static_cast<float>(task.height) / task.width);
@@ -209,6 +227,14 @@ int main() try {
             logger.debug(std::format("Written {} bytes in pipe for scene", glbData.size()));
 
             while (running) {
+                int status;
+                pid_t result = waitpid(renderer_pid, &status, WNOHANG);
+                if (result == renderer_pid) {
+                    logger.error("Renderer died. Restarting renderer");
+                    renderer_pid = execRenderer(config);
+                    throw std::runtime_error("Renderer died");
+                }
+
                 std::string cmdMsg = commandConsumer.consume(std::chrono::milliseconds(0));
 
                 if (!cmdMsg.empty()) {
@@ -233,7 +259,15 @@ int main() try {
 
                 if (ret > 0 && FD_ISSET(STDIN_FILENO, &readfds)) {
                     ResultHeader resultHeader;
-                    read(STDIN_FILENO, &resultHeader, sizeof(resultHeader));
+                    ssize_t size = read(STDIN_FILENO, &resultHeader, sizeof(resultHeader));
+                    if (size == 0) {
+                        logger.error("Renderer died. Restarting renderer");
+                        renderer_pid = execRenderer(config);
+                        throw std::runtime_error("Renderer died");
+                    } else if (size == -1) {
+                        if (errno == EINTR) continue;
+                        throw std::runtime_error(std::format("Failed to read result header: {}", std::strerror(errno)));
+                    }
                     logger.debug(std::format("Read {} bytes from pipe for resultHeader", sizeof(resultHeader)));
                     if (resultHeader.resultDataSize > 0) {
                         std::vector<uint8_t> result(resultHeader.resultDataSize);
@@ -278,11 +312,6 @@ int main() try {
                     taskConsumer.commit();
                     logger.info(std::format("Current message processing finished successfully. Listening..."));
                     break;
-                }
-                int status;
-                pid_t result = waitpid(renderer_pid, &status, WNOHANG);
-                if (result == renderer_pid) {
-                    throw std::runtime_error("Renderer died");
                 }
             }
         } catch (std::exception& e) {
