@@ -56,7 +56,19 @@ docker build --file backend/Dockerfile -t prism-backend .
 docker run --rm -p 8000:8000 prism-backend
 ```
 
-Configure the required environment variables before starting the application.
+## Configuration
+
+The backend uses environment variables for configuration.
+
+Create a `.env` file in the `backend` directory and configure the required settings for:
+
+- PostgreSQL
+- Kafka
+- S3 / MinIO
+- JWT
+- Application settings
+
+Make sure the required environment variables are set before starting the backend.
 
 ## API Documentation
 
@@ -71,6 +83,7 @@ alembic upgrade head
 alembic revision --autogenerate -m "description"
 alembic downgrade -1
 ```
+
 ---
 
 ## Testing
