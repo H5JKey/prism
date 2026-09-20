@@ -4,35 +4,11 @@
 
 ---
 
-## Architecture
+## Overview
 
-The backend provides the API and server-side infrastructure for Prism. It manages users, projects, files and render jobs, while communicating with the renderer through Kafka and storing scene and result files in S3-compatible storage.
+The backend provides the HTTP API used to work with Prism. It handles user accounts, projects, scene files, render settings and render jobs.
 
-```
-                         ┌─────────────────┐
-                         │    Frontend     │
-                         └────────┬────────┘
-                                  │ HTTP
-                                  ▼
-                         ┌─────────────────┐
-                         │     FastAPI     │
-                         │      API        │
-                         └───────┬─────────┘
-                                 │
-              ┌──────────────────┼──────────────────┐
-              │                  │                  │
-              ▼                  ▼                  ▼
-        ┌───────────┐      ┌───────────┐      ┌───────────┐
-        │ PostgreSQL│      │   MinIO   │      │   Kafka   │
-        │  Database │      │ S3 Storage│      │   Queue   │
-        └───────────┘      └───────────┘      └─────┬─────┘
-                                                    │
-                                                    ▼
-                                           ┌─────────────────┐
-                                           │     Renderer    │
-                                           │     Worker      │
-                                           └─────────────────┘
-```
+The API is available under the `/v1` prefix. Once the server is running, the easiest way to explore it is through the automatically generated Swagger UI at `/docs`.
 
 ---
 
@@ -41,11 +17,10 @@ The backend provides the API and server-side infrastructure for Prism. It manage
 - **REST API** – FastAPI-based HTTP API
 - **Authentication** – JWT access and refresh tokens
 - **Projects** – Create and manage rendering projects
-- **File Storage** – Upload and download scene and render files through S3-compatible storage
+- **File Storage** – Upload scene files and access rendered results through S3-compatible storage
 - **Render Jobs** – Submit rendering tasks through Kafka
 - **Async Database** – PostgreSQL with SQLAlchemy and asyncpg
-- **Migrations** – Database schema management with Alembic
-- **Outbox Worker** – Reliable publishing of database events to Kafka
+- **Tags** – Organize projects with tags
 - **Validation** – Request and response validation with Pydantic
 - **Monitoring** – Prometheus metrics for the API
 
@@ -63,82 +38,26 @@ The backend provides the API and server-side infrastructure for Prism. It manage
 | Migrations | Alembic |
 | Object Storage | S3 / MinIO |
 | Message Broker | Apache Kafka |
-| Authentication | JWT |
+| Authentication | JWT + bcrypt |
 | Validation | Pydantic 2 |
 | Metrics | Prometheus |
 
 ---
 
-## Project Structure
+## Running the Backend
 
-```
-backend/
-├── api/                  # HTTP API and exception handlers
-│   └── api_v1/           # Versioned API endpoints
-├── core/                 # Application configuration and shared logic
-├── dependencies/         # FastAPI dependencies
-├── infrastructure/       # Database, Kafka and storage infrastructure
-├── migrations/           # Alembic database migrations
-├── outbox_worker/        # Transactional outbox publisher
-├── schemas/              # Pydantic request/response schemas
-├── services/             # Application services
-├── tests/                # Backend tests
-├── application_factory.py
-├── lifespan.py
-├── main.py
-├── prestart.sh
-├── Dockerfile
-└── pyproject.toml
-```
+The backend requires Python 3.13+ and the project's infrastructure services: PostgreSQL, Kafka and an S3-compatible object store such as MinIO.
 
----
+### Using Poetry
 
-## Required Services
-
-The backend depends on the following services:
-
-- PostgreSQL
-- Kafka
-- S3-compatible object storage (MinIO in the development environment)
-
-The renderer worker consumes render tasks from Kafka and writes rendered output to object storage.
-
----
-
-## Configuration
-
-The backend is configured through environment variables and supports a `.env` file.
-
-Typical configuration includes:
-
-| Variable | Description |
-|----------|-------------|
-| `DATABASE_URL` | PostgreSQL connection URL |
-| `KAFKA_HOST` | Kafka broker address |
-| `KAFKA_TOPIC_TASKS` | Kafka topic for render tasks |
-| `KAFKA_TOPIC_OUTPUT` | Kafka topic for renderer results |
-| `S3_HOST` | S3-compatible storage endpoint |
-| `S3_ACCESS_KEY` | S3 access key |
-| `S3_SECRET_KEY` | S3 secret key |
-| `JWT_SECRET_KEY` | Secret used to sign JWT tokens |
-
-> [!NOTE]
-> Refer to the configuration classes in `core/config` for the complete list of supported settings.
-
----
-
-## Installation
-
-### Poetry
-
-The backend requires Python 3.13 or newer.
+From the repository root:
 
 ```bash
 cd backend
 poetry install
 ```
 
-Run database migrations:
+Configure the required environment variables in `.env`, then apply the database migrations:
 
 ```bash
 alembic upgrade head
@@ -150,75 +69,310 @@ Start the API:
 uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
-The API is then available at `http://localhost:8000`.
+The API will be available at `http://localhost:8000`.
 
-FastAPI also provides interactive API documentation at:
+### Using Docker
 
-- `/docs` – Swagger UI
-- `/redoc` – ReDoc
-
-### Docker
-
-Build the backend image from the repository root:
+Build the image from the repository root:
 
 ```bash
 docker build --file backend/Dockerfile -t prism-backend .
 ```
 
-Run it with the required environment variables and services configured:
+Then run it with the required environment and infrastructure services:
 
 ```bash
 docker run --rm -p 8000:8000 prism-backend
 ```
 
-For local development, the repository Docker Compose configuration can be used to start the backend together with its dependencies.
+For a complete local setup, use the repository's Docker Compose configuration.
 
 ---
 
-## Render Job Flow
+## Configuration
 
-A render request follows this general flow:
+Configuration is provided through environment variables and can be stored in a `.env` file.
+
+The exact settings are defined in `core/config`. The main groups of configuration are:
+
+| Group | Purpose |
+|-------|---------|
+| Database | PostgreSQL connection |
+| Kafka | Broker and render-task topics |
+| MinIO / S3 | Object storage connection |
+| JWT | Token signing and authentication |
+| Application | General backend settings |
+
+Do not commit secrets such as database passwords, S3 credentials or JWT signing keys.
+
+---
+
+## Using the API
+
+The base URL for a local instance is:
 
 ```
-Client
-  │
-  │ HTTP
-  ▼
-FastAPI
-  │
-  ├──► PostgreSQL
-  │       └── project / render state
-  │
-  ├──► S3 / MinIO
-  │       └── scene / rendered image
-  │
-  ▼
-Kafka
-  │
-  ▼
-Renderer Worker
-  │
-  ▼
-Kafka
-  │
-  ▼
-FastAPI / Outbox
-  │
-  ▼
-PostgreSQL + S3
+http://localhost:8000/v1
 ```
 
-The API creates the render job and publishes a task for the renderer. The worker processes the scene and reports the result back through Kafka.
+Open `http://localhost:8000/docs` in a browser to see the complete OpenAPI documentation and try requests interactively.
+
+Most operations require an access token. After logging in, send it as:
+
+```
+Authorization: Bearer <access_token>
+```
+
+A typical workflow is:
+
+1. Register or log in.
+2. Upload a scene file.
+3. Create a project with render settings and the uploaded file.
+4. Use the project endpoints to inspect the render status and result.
+5. Add or manage tags if needed.
 
 ---
 
 ## Authentication
 
-The API uses JWT-based authentication.
+### Register
 
-Access and refresh tokens are issued during authentication. Protected endpoints require a valid access token.
+`POST /v1/auth/register`
 
-The backend also provides password hashing using bcrypt.
+Creates a new account and returns access and refresh tokens.
+
+Request:
+
+```json
+{
+  "surname": "Doe",
+  "name": "John",
+  "username": "john",
+  "email": "john@example.com",
+  "password": "password"
+}
+```
+
+### Login
+
+`POST /v1/auth/login`
+
+Authenticates an existing user.
+
+Request:
+
+```json
+{
+  "username": "john",
+  "password": "password"
+}
+```
+
+The response contains the tokens required for authenticated requests.
+
+### Refresh access token
+
+`GET /v1/auth/refresh`
+
+Uses the refresh token to obtain a new access token.
+
+---
+
+## Files
+
+### Upload a file
+
+`POST /v1/files/upload`
+
+Uploads a file to the configured S3-compatible storage and returns its file information.
+
+The request uses `multipart/form-data` with the file field.
+
+Example:
+
+```bash
+curl -X POST http://localhost:8000/v1/files/upload \
+  -H "Authorization: Bearer <access_token>" \
+  -F "uploaded_file=@scene.glb"
+```
+
+The returned file ID is used when creating a project.
+
+---
+
+## Projects
+
+Projects contain the source scene, render configuration and render status.
+
+### Create a project
+
+`POST /v1/projects/create`
+
+Creates a project and its render configuration.
+
+Example request:
+
+```json
+{
+  "project": {
+    "name": "My Scene",
+    "description": "Test render",
+    "source_file_id": 1,
+    "visibility": "public"
+  },
+  "render": {
+    "width": 1920,
+    "height": 1080,
+    "samples": 128,
+    "denoiser": true,
+    "gpu": true,
+    "background": [0.1, 0.1, 0.1],
+    "sun": {
+      "direction": [0.0, 1.0, 0.0],
+      "color": [1.0, 0.8, 0.5],
+      "exponent": 10
+    }
+  }
+}
+```
+
+The response contains the created project and render information.
+
+### Get public projects
+
+`GET /v1/projects/?page=1&size=10`
+
+Returns a paginated list of public projects.
+
+### Get your projects
+
+`GET /v1/projects/about-me?page=1&size=10`
+
+Returns projects owned by the authenticated user.
+
+### Get a user's public projects
+
+`GET /v1/projects/user/{user_id}?page=1&size=10`
+
+Returns the public projects belonging to a specific user.
+
+### Get a project
+
+`GET /v1/projects/{project_id}`
+
+Returns project information, render information and access URLs for stored files.
+
+### Update a project
+
+`PATCH /v1/projects/{project_id}`
+
+Partially updates the project's name, description or visibility.
+
+Example:
+
+```json
+{
+  "name": "Updated Scene",
+  "visibility": "private"
+}
+```
+
+### Delete a project
+
+`DELETE /v1/projects/{project_id}`
+
+Deletes a project owned by the authenticated user.
+
+---
+
+## Tags
+
+Tags can be attached to projects to make them easier to organize.
+
+### Create a tag
+
+`POST /v1/tags/create`
+
+Example:
+
+```json
+{
+  "name": "architecture",
+  "project_id": 1
+}
+```
+
+### Get project tags
+
+`GET /v1/tags/project/{project_id}`
+
+Returns the tags associated with a project.
+
+### Delete a tag
+
+`DELETE /v1/tags/{tag_id}`
+
+Deletes a tag owned by the authenticated user.
+
+---
+
+## Users
+
+### Get your profile
+
+`GET /v1/users/about-me`
+
+Returns the authenticated user's profile, including their email.
+
+### Update your profile
+
+`PUT /v1/users/about-me`
+
+Updates the authenticated user's name, surname, username and email.
+
+### Delete your account
+
+`DELETE /v1/users/about-me`
+
+Deletes the authenticated user's account.
+
+### Get a user
+
+`GET /v1/users/{user_id}`
+
+Returns public information about a user.
+
+---
+
+## Render Lifecycle
+
+Creating a project also creates its render job. The renderer worker receives the render task through Kafka and processes the uploaded scene.
+
+The project response contains a render status. Once rendering is complete, the result file can be accessed through the URL returned by the project endpoint.
+
+The backend is responsible for storing the metadata and files; the actual rendering is performed by the renderer worker.
+
+---
+
+## Database Migrations
+
+Apply existing migrations:
+
+```bash
+alembic upgrade head
+```
+
+Create a new migration:
+
+```bash
+alembic revision --autogenerate -m "description"
+```
+
+Rollback the latest migration:
+
+```bash
+alembic downgrade -1
+```
 
 ---
 
@@ -230,7 +384,7 @@ Run the test suite with:
 pytest
 ```
 
-For asynchronous tests:
+For verbose output:
 
 ```bash
 pytest -v
@@ -240,14 +394,7 @@ pytest -v
 
 ## Code Quality
 
-The project uses:
-
-- **Ruff** for linting
-- **Black** for formatting
-- **mypy** for static type checking
-- **pytest-asyncio** for asynchronous tests
-
-Example:
+The project uses Ruff, Black and mypy.
 
 ```bash
 ruff check .
@@ -257,37 +404,12 @@ mypy .
 
 ---
 
-## Database Migrations
+## API Documentation
 
-Create a new migration:
+When the backend is running, FastAPI provides:
 
-```bash
-alembic revision --autogenerate -m "description"
-```
+- `/docs` – Swagger UI
+- `/redoc` – ReDoc
+- `/openapi.json` – OpenAPI schema
 
-Apply migrations:
-
-```bash
-alembic upgrade head
-```
-
-Rollback the latest migration:
-
-```bash
-alembic downgrade -1
-```
-
----
-
-## API
-
-The API is versioned under `api/api_v1`.
-
-FastAPI automatically exposes the OpenAPI schema and interactive documentation when the application is running.
-
----
-
-## Related Components
-
-- [Renderer](../renderer/README.md) – physically based path tracing engine and distributed worker
-- [Frontend](../frontend/README.md) – web interface for Prism
+The Swagger UI is the recommended starting point for exploring and testing the API.
