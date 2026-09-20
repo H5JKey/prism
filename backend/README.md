@@ -6,9 +6,9 @@
 
 ## Overview
 
-The backend provides the HTTP API used to work with Prism. It handles user accounts, projects, scene files, render settings and render jobs.
+The backend provides the HTTP API for Prism. It handles users, projects, scene files, render settings and render jobs.
 
-The API is available under the `/v1` prefix. Once the server is running, the easiest way to explore it is through the automatically generated Swagger UI at `/docs`.
+The API is available under the `/v1` prefix.
 
 ---
 
@@ -22,7 +22,6 @@ The API is available under the `/v1` prefix. Once the server is running, the eas
 - **Async Database** – PostgreSQL with SQLAlchemy and asyncpg
 - **Tags** – Organize projects with tags
 - **Validation** – Request and response validation with Pydantic
-- **Monitoring** – Prometheus metrics for the API
 
 ---
 
@@ -34,58 +33,45 @@ The API is available under the `/v1` prefix. Once the server is running, the eas
 | API | FastAPI |
 | Database | PostgreSQL |
 | ORM | SQLAlchemy 2 |
-| Database Driver | asyncpg |
 | Migrations | Alembic |
 | Object Storage | S3 / MinIO |
 | Message Broker | Apache Kafka |
 | Authentication | JWT + bcrypt |
 | Validation | Pydantic 2 |
-| Metrics | Prometheus |
 
 ---
 
 ## Running the Backend
 
-The backend requires Python 3.13+ and the project's infrastructure services: PostgreSQL, Kafka and an S3-compatible object store such as MinIO.
+The backend requires Python 3.13+ and PostgreSQL, Kafka and an S3-compatible object store.
 
-### Using Poetry
-
-From the repository root:
+### Poetry
 
 ```bash
 cd backend
 poetry install
 ```
 
-Configure the required environment variables in `.env`, then apply the database migrations:
+Configure the required environment variables, then apply migrations:
 
 ```bash
 alembic upgrade head
 ```
 
-Start the API:
+Start the application:
 
 ```bash
 uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
-The API will be available at `http://localhost:8000`.
-
-### Using Docker
-
-Build the image from the repository root:
+### Docker
 
 ```bash
 docker build --file backend/Dockerfile -t prism-backend .
-```
-
-Then run it with the required environment and infrastructure services:
-
-```bash
 docker run --rm -p 8000:8000 prism-backend
 ```
 
-For a complete local setup, use the repository's Docker Compose configuration.
+For a complete setup, use the repository's Docker Compose configuration.
 
 ---
 
@@ -93,31 +79,21 @@ For a complete local setup, use the repository's Docker Compose configuration.
 
 Configuration is provided through environment variables and can be stored in a `.env` file.
 
-The exact settings are defined in `core/config`. The main groups of configuration are:
+The main configuration groups are:
 
 | Group | Purpose |
 |-------|---------|
 | Database | PostgreSQL connection |
 | Kafka | Broker and render-task topics |
-| MinIO / S3 | Object storage connection |
-| JWT | Token signing and authentication |
+| MinIO / S3 | Object storage |
+| JWT | Authentication |
 | Application | General backend settings |
-
-Do not commit secrets such as database passwords, S3 credentials or JWT signing keys.
 
 ---
 
-## Using the API
+## API
 
-The base URL for a local instance is:
-
-```
-http://localhost:8000/v1
-```
-
-Open `http://localhost:8000/docs` in a browser to see the complete OpenAPI documentation and try requests interactively.
-
-Most operations require an access token. After logging in, send it as:
+Most operations require an access token:
 
 ```
 Authorization: Bearer <access_token>
@@ -127,90 +103,41 @@ A typical workflow is:
 
 1. Register or log in.
 2. Upload a scene file.
-3. Create a project with render settings and the uploaded file.
-4. Use the project endpoints to inspect the render status and result.
-5. Add or manage tags if needed.
+3. Create a project with render settings.
+4. Monitor the project render status.
+5. Access the rendered result when it is ready.
 
----
+### Authentication
 
-## Authentication
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/v1/auth/register` | Register a new user |
+| POST | `/v1/auth/login` | Log in |
+| GET | `/v1/auth/refresh` | Refresh an access token |
 
-### Register
+### Files
 
-`POST /v1/auth/register`
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/v1/files/upload` | Upload a scene file |
 
-Creates a new account and returns access and refresh tokens.
+The uploaded file ID is used when creating a project.
 
-Request:
+### Projects
 
-```json
-{
-  "surname": "Doe",
-  "name": "John",
-  "username": "john",
-  "email": "john@example.com",
-  "password": "password"
-}
-```
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/v1/projects/create` | Create a project and render |
+| GET | `/v1/projects/` | Get public projects |
+| GET | `/v1/projects/about-me` | Get your projects |
+| GET | `/v1/projects/user/{user_id}` | Get a user's public projects |
+| GET | `/v1/projects/{project_id}` | Get a project |
+| PATCH | `/v1/projects/{project_id}` | Update a project |
+| DELETE | `/v1/projects/{project_id}` | Delete a project |
 
-### Login
-
-`POST /v1/auth/login`
-
-Authenticates an existing user.
-
-Request:
-
-```json
-{
-  "username": "john",
-  "password": "password"
-}
-```
-
-The response contains the tokens required for authenticated requests.
-
-### Refresh access token
-
-`GET /v1/auth/refresh`
-
-Uses the refresh token to obtain a new access token.
-
----
-
-## Files
-
-### Upload a file
-
-`POST /v1/files/upload`
-
-Uploads a file to the configured S3-compatible storage and returns its file information.
-
-The request uses `multipart/form-data` with the file field.
+A render is configured when the project is created. The render settings include resolution, samples, denoiser, GPU usage, background and sun parameters.
 
 Example:
-
-```bash
-curl -X POST http://localhost:8000/v1/files/upload \
-  -H "Authorization: Bearer <access_token>" \
-  -F "uploaded_file=@scene.glb"
-```
-
-The returned file ID is used when creating a project.
-
----
-
-## Projects
-
-Projects contain the source scene, render configuration and render status.
-
-### Create a project
-
-`POST /v1/projects/create`
-
-Creates a project and its render configuration.
-
-Example request:
 
 ```json
 {
@@ -236,141 +163,38 @@ Example request:
 }
 ```
 
-The response contains the created project and render information.
+### Tags
 
-### Get public projects
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/v1/tags/create` | Add a tag to a project |
+| GET | `/v1/tags/project/{project_id}` | Get project tags |
+| DELETE | `/v1/tags/{tag_id}` | Delete a tag |
 
-`GET /v1/projects/?page=1&size=10`
+### Users
 
-Returns a paginated list of public projects.
-
-### Get your projects
-
-`GET /v1/projects/about-me?page=1&size=10`
-
-Returns projects owned by the authenticated user.
-
-### Get a user's public projects
-
-`GET /v1/projects/user/{user_id}?page=1&size=10`
-
-Returns the public projects belonging to a specific user.
-
-### Get a project
-
-`GET /v1/projects/{project_id}`
-
-Returns project information, render information and access URLs for stored files.
-
-### Update a project
-
-`PATCH /v1/projects/{project_id}`
-
-Partially updates the project's name, description or visibility.
-
-Example:
-
-```json
-{
-  "name": "Updated Scene",
-  "visibility": "private"
-}
-```
-
-### Delete a project
-
-`DELETE /v1/projects/{project_id}`
-
-Deletes a project owned by the authenticated user.
-
----
-
-## Tags
-
-Tags can be attached to projects to make them easier to organize.
-
-### Create a tag
-
-`POST /v1/tags/create`
-
-Example:
-
-```json
-{
-  "name": "architecture",
-  "project_id": 1
-}
-```
-
-### Get project tags
-
-`GET /v1/tags/project/{project_id}`
-
-Returns the tags associated with a project.
-
-### Delete a tag
-
-`DELETE /v1/tags/{tag_id}`
-
-Deletes a tag owned by the authenticated user.
-
----
-
-## Users
-
-### Get your profile
-
-`GET /v1/users/about-me`
-
-Returns the authenticated user's profile, including their email.
-
-### Update your profile
-
-`PUT /v1/users/about-me`
-
-Updates the authenticated user's name, surname, username and email.
-
-### Delete your account
-
-`DELETE /v1/users/about-me`
-
-Deletes the authenticated user's account.
-
-### Get a user
-
-`GET /v1/users/{user_id}`
-
-Returns public information about a user.
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/v1/users/about-me` | Get your profile |
+| PUT | `/v1/users/about-me` | Update your profile |
+| DELETE | `/v1/users/about-me` | Delete your account |
+| GET | `/v1/users/{user_id}` | Get public user information |
 
 ---
 
 ## Render Lifecycle
 
-Creating a project also creates its render job. The renderer worker receives the render task through Kafka and processes the uploaded scene.
+Creating a project also creates its render job. The renderer worker receives the task through Kafka and processes the uploaded scene.
 
-The project response contains a render status. Once rendering is complete, the result file can be accessed through the URL returned by the project endpoint.
-
-The backend is responsible for storing the metadata and files; the actual rendering is performed by the renderer worker.
+The project contains the current render status and, when available, access to the rendered result.
 
 ---
 
 ## Database Migrations
 
-Apply existing migrations:
-
 ```bash
 alembic upgrade head
-```
-
-Create a new migration:
-
-```bash
 alembic revision --autogenerate -m "description"
-```
-
-Rollback the latest migration:
-
-```bash
 alembic downgrade -1
 ```
 
@@ -378,38 +202,14 @@ alembic downgrade -1
 
 ## Testing
 
-Run the test suite with:
-
 ```bash
 pytest
 ```
 
-For verbose output:
-
-```bash
-pytest -v
-```
-
----
-
 ## Code Quality
-
-The project uses Ruff, Black and mypy.
 
 ```bash
 ruff check .
 black .
 mypy .
 ```
-
----
-
-## API Documentation
-
-When the backend is running, FastAPI provides:
-
-- `/docs` – Swagger UI
-- `/redoc` – ReDoc
-- `/openapi.json` – OpenAPI schema
-
-The Swagger UI is the recommended starting point for exploring and testing the API.
