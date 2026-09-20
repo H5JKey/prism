@@ -4,32 +4,11 @@
 
 ---
 
-## Prism Backend
+## Overview
 
-~~~text
-                         ┌─────────────────┐
-                         │     Client      │
-                         └────────┬────────┘
-                                  │ HTTP
-                                  ▼
-                         ┌─────────────────┐
-                         │    FastAPI      │
-                         │      API        │
-                         └───────┬─────────┘
-                                 │
-              ┌──────────────────┼──────────────────┐
-              │                  │                  │
-              ▼                  ▼                  ▼
-        ┌───────────┐      ┌───────────┐      ┌───────────┐
-        │ PostgreSQL│      │  S3/MinIO │      │   Kafka   │
-        │  Database │      │  Storage   │      │   Queue   │
-        └───────────┘      └───────────┘      └─────┬─────┘
-                                                    │
-                                                    ▼
-                                           ┌─────────────────┐
-                                           │ Renderer Worker │
-                                           └─────────────────┘
-~~~
+The backend provides the HTTP API for Prism. It handles users, projects, scene files, render settings and render jobs.
+
+The API is available under the `/v1` prefix.
 
 ---
 
@@ -68,29 +47,30 @@ The backend requires Python 3.13+ and PostgreSQL, Kafka and an S3-compatible obj
 
 ### Poetry
 
-~~~bash
+```bash
 cd backend
 poetry install
-~~~
+source $(poetry env info --path)/bin/activate
+```
 
 Configure the required environment variables, then apply migrations:
 
-~~~bash
+```bash
 alembic upgrade head
-~~~
+```
 
 Start the application:
 
-~~~bash
+```bash
 uvicorn main:app --host 0.0.0.0 --port 8000
-~~~
+```
 
 ### Docker
 
-~~~bash
+```bash
 docker build --file backend/Dockerfile -t prism-backend .
 docker run --rm -p 8000:8000 prism-backend
-~~~
+```
 
 For a complete setup, use the repository's Docker Compose configuration.
 
@@ -99,6 +79,8 @@ For a complete setup, use the repository's Docker Compose configuration.
 ## Configuration
 
 Configuration is provided through environment variables and can be stored in a `.env` file.
+
+The main configuration groups are:
 
 | Group | Purpose |
 |-------|---------|
@@ -112,11 +94,19 @@ Configuration is provided through environment variables and can be stored in a `
 
 ## API
 
-The API base path is `/api/v1`. Most operations require an access token:
+Most operations require an access token:
 
-~~~text
+```
 Authorization: Bearer <access_token>
-~~~
+```
+
+A typical workflow is:
+
+1. Register or log in.
+2. Upload a scene file.
+3. Create a project with render settings.
+4. Monitor the project render status.
+5. Access the rendered result when it is ready.
 
 ### Authentication
 
@@ -132,19 +122,47 @@ Authorization: Bearer <access_token>
 |--------|----------|-------------|
 | POST | `/api/v1/files/upload` | Upload a scene file |
 
+The uploaded file ID is used when creating a project.
+
 ### Projects
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/v1/projects/create` | Create a project and render |
-| GET | `/api/v1/projects/` | Get public projects |
+| POST | `api/v1/projects/create` | Create a project and render |
+| GET | `api/v1/projects/` | Get public projects |
 | GET | `/api/v1/projects/about-me` | Get your projects |
 | GET | `/api/v1/projects/user/{user_id}` | Get a user's public projects |
 | GET | `/api/v1/projects/{project_id}` | Get a project |
 | PATCH | `/api/v1/projects/{project_id}` | Update a project |
 | DELETE | `/api/v1/projects/{project_id}` | Delete a project |
 
-Render settings include resolution, samples, denoiser, GPU usage, background and sun parameters.
+A render is configured when the project is created. The render settings include resolution, samples, denoiser, GPU usage, background and sun parameters.
+
+Example:
+
+```json
+{
+  "project": {
+    "name": "My Scene",
+    "description": "Test render",
+    "source_file_id": 1,
+    "visibility": "public"
+  },
+  "render": {
+    "width": 1920,
+    "height": 1080,
+    "samples": 128,
+    "denoiser": true,
+    "gpu": true,
+    "background": [0.1, 0.1, 0.1],
+    "sun": {
+      "direction": [0.0, 1.0, 0.0],
+      "color": [1.0, 0.8, 0.5],
+      "exponent": 10
+    }
+  }
+}
+```
 
 ### Tags
 
@@ -165,50 +183,26 @@ Render settings include resolution, samples, denoiser, GPU usage, background and
 
 ---
 
-## Render Lifecycle
-
-Creating a project also creates its render job.
-
-~~~text
-Client          API           Kafka        Renderer        Storage
-  │              │              │             │               │
-  │ Create       │              │             │               │
-  │ project ────►│              │             │               │
-  │              │ Render task │             │               │
-  │              ├─────────────►│             │               │
-  │              │              │ Task        │               │
-  │              ├─────────────►│────────────►│               │
-  │              │              │             │ Render        │
-  │              │              │             ├──────────────►│
-  │              │              │             │               │
-  │              │              │ Result      │               │
-  │              │◄─────────────┼─────────────┤               │
-  │ Result       │              │             │               │
-  │◄─────────────│              │             │               │
-~~~
-
----
-
 ## Database Migrations
 
-~~~bash
+```bash
 alembic upgrade head
 alembic revision --autogenerate -m "description"
 alembic downgrade -1
-~~~
+```
 
 ---
 
 ## Testing
 
-~~~bash
+```bash
 pytest
-~~~
+```
 
 ## Code Quality
 
-~~~bash
+```bash
 ruff check .
 black .
 mypy .
-~~~
+```
