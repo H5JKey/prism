@@ -12,6 +12,7 @@ add_library(renderer_core STATIC
     src/utils.cpp
     src/stb-implementation.cpp
     src/context-guard.cpp
+    src/upscaler.cpp
 )
 
 target_link_libraries(renderer_core PUBLIC

@@ -14,7 +14,7 @@ class RGBToRGBATest : public ::testing::Test {
         rgb.resize(100);
         rgba.resize(100);
         /* RGB buffer size must be multiple of 3 */
-        EXPECT_THROW(utils::rgbToRgba(rgb, rgba), std::runtime_error);
+        EXPECT_THROW(utils::rgbToRgba(rgb, rgba), std::invalid_argument);
 
         rgb = {1, 2, 3, 4, 5, 6, 7, 8, 9};
         rgba.resize(12);
@@ -71,7 +71,7 @@ class RGBToRGBATest : public ::testing::Test {
         rgb.resize(300);
         rgba.resize(301);
         /* RGBA buffer size must be multiple of 4 */
-        EXPECT_THROW(utils::rgbaToRgb(rgba, rgb), std::runtime_error);
+        EXPECT_THROW(utils::rgbaToRgb(rgba, rgb), std::invalid_argument);
 
         rgba = {1, 2, 3, 1, 4, 5, 6, 0, 7, 8, 9, 1};
         expected = {1, 2, 3, 4, 5, 6, 7, 8, 9};

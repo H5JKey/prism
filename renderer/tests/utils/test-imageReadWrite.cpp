@@ -37,11 +37,11 @@ TYPED_TEST(ImageReadWriteTest, roundTripWriteRead) {
     }
     /* Pixel data size mismatch */
     EXPECT_THROW(utils::writeToPng(this->pixels, this->width + 1, this->height, this->channels, this->path),
-                 std::runtime_error);
+                 std::invalid_argument);
     EXPECT_THROW(utils::writeToPng(this->pixels, this->width, this->height + 1, this->channels, this->path),
-                 std::runtime_error);
+                 std::invalid_argument);
     EXPECT_THROW(utils::writeToPng(this->pixels, this->width, this->height, (this->channels == 3) ? 4 : 3, this->path),
-                 std::runtime_error);
+                 std::invalid_argument);
 
     EXPECT_NO_THROW(utils::writeToPng(this->pixels, this->width, this->height, this->channels, this->path));
     ASSERT_NO_THROW(
@@ -64,7 +64,7 @@ TYPED_TEST(ImageReadWriteTest, emptyImageWriteThrows) {
 
     /* Writing to empty file */
     EXPECT_THROW(utils::writeToPng(this->pixels, this->width, this->height, this->channels, this->path),
-                 std::runtime_error);
+                 std::invalid_argument);
 }
 
 TEST(ImageReadWriteTest, readFromUnexistentFileThrows) {
