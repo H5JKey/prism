@@ -6,12 +6,16 @@
 
 ## Prism Backend
 
-<table>
-  <tr>
-    <td><img src="../renderer/images/cornell.png" alt="Cornell box" width="400"></td>
-    <td><img src="../renderer/images/room.png" alt="Room" width="400"></td>
-  </tr>
-</table>
+~~~mermaid
+flowchart LR
+    Client --> API[FastAPI API]
+    API --> DB[(PostgreSQL)]
+    API --> S3[(S3 / MinIO)]
+    API --> Kafka[(Kafka)]
+    Kafka --> Worker[Renderer Worker]
+    Worker --> Kafka
+    Worker --> S3
+~~~
 
 ---
 
@@ -50,29 +54,29 @@ The backend requires Python 3.13+ and PostgreSQL, Kafka and an S3-compatible obj
 
 ### Poetry
 
-```bash
+~~~bash
 cd backend
 poetry install
-```
+~~~
 
 Configure the required environment variables, then apply migrations:
 
-```bash
+~~~bash
 alembic upgrade head
-```
+~~~
 
 Start the application:
 
-```bash
+~~~bash
 uvicorn main:app --host 0.0.0.0 --port 8000
-```
+~~~
 
 ### Docker
 
-```bash
+~~~bash
 docker build --file backend/Dockerfile -t prism-backend .
 docker run --rm -p 8000:8000 prism-backend
-```
+~~~
 
 For a complete setup, use the repository's Docker Compose configuration.
 
@@ -96,17 +100,19 @@ Configuration is provided through environment variables and can be stored in a `
 
 Most operations require an access token:
 
-```
+~~~text
 Authorization: Bearer <access_token>
-```
+~~~
 
-A typical workflow is:
+A typical workflow:
 
-1. Register or log in.
-2. Upload a scene file.
-3. Create a project with render settings.
-4. Monitor the project render status.
-5. Access the rendered result when it is ready.
+~~~mermaid
+flowchart LR
+    A[Register / Login] --> B[Upload Scene]
+    B --> C[Create Project]
+    C --> D[Render]
+    D --> E[Get Result]
+~~~
 
 ### Authentication
 
@@ -157,32 +163,47 @@ Render settings include resolution, samples, denoiser, GPU usage, background and
 
 ## Render Lifecycle
 
-Creating a project also creates its render job. The renderer worker receives the task through Kafka and processes the uploaded scene.
+Creating a project also creates its render job.
 
-The project contains the current render status and, when available, access to the rendered result.
+~~~mermaid
+sequenceDiagram
+    participant C as Client
+    participant A as API
+    participant K as Kafka
+    participant W as Renderer Worker
+    participant S as S3 / MinIO
+
+    C->>A: Create project
+    A->>K: Render task
+    K->>W: Render task
+    W->>S: Store result
+    W->>K: Render result
+    K->>A: Update status
+    A-->>C: Render status / result
+~~~
 
 ---
 
 ## Database Migrations
 
-```bash
+~~~bash
 alembic upgrade head
 alembic revision --autogenerate -m "description"
 alembic downgrade -1
-```
+~~~
 
 ---
 
 ## Testing
 
-```bash
+~~~bash
 pytest
-```
+~~~
 
 ## Code Quality
 
-```bash
+~~~bash
 ruff check .
 black .
 mypy .
-```
+~~~
