@@ -17,7 +17,11 @@ void Config::apply(env::dotenv dotenv) {
         if (dotenv.hasVariable("S3_SECRET_KEY")) s3SecretKey_ = dotenv["S3_SECRET_KEY"];
         if (dotenv.hasVariable("LOG_LEVEL")) logLevel_ = Logger::getLevelFromString(dotenv["LOG_LEVEL"]);
         if (dotenv.hasVariable("LOG_DEBUG")) logDebug_ = dotenv["LOG_DEBUG"];
-        if (dotenv.hasVariable("RENDERER_PREVIEW")) preview_ = dotenv["RENDERER_PREVIEW"];
+        if (dotenv.hasVariable("RENDERER_PREVIEW")) rendererPreview_ = dotenv["RENDERER_PREVIEW"];
+        if (dotenv.hasVariable("RENDERER_PREVIEW_MAX_SIZE"))
+            rendererPreviewMaxSize_ = dotenv["RENDERER_PREVIEW_MAX_SIZE"];
+        if (dotenv.hasVariable("RENDERER_PREVIEW_UPSCALE_FACTOR"))
+            rendererPreviewUpscaleFactor_ = dotenv["RENDERER_PREVIEW_UPSCALE_FACTOR"];
     } catch (const env::Value::ValueError& e) {
         throw std::runtime_error(std::format("Invalid value format in .env file. Error: {}.", e.what()));
     }
@@ -38,7 +42,9 @@ void Config::fromEnvironment() {
         if (char* ptr = std::getenv("S3_SECRET_KEY")) s3SecretKey_ = env::Value(ptr);
         if (char* ptr = std::getenv("LOG_LEVEL")) logLevel_ = Logger::getLevelFromString(env::Value(ptr));
         if (char* ptr = std::getenv("LOG_DEBUG")) logDebug_ = env::Value(ptr);
-        if (char* ptr = std::getenv("RENDERER_PREVIEW")) preview_ = env::Value(ptr);
+        if (char* ptr = std::getenv("RENDERER_PREVIEW")) rendererPreview_ = env::Value(ptr);
+        if (char* ptr = std::getenv("RENDERER_PREVIEW_MAX_SIZE")) rendererPreviewMaxSize_ = env::Value(ptr);
+        if (char* ptr = std::getenv("RENDERER_PREVIEW_UPSCALE_FACTOR")) rendererPreviewUpscaleFactor_ = env::Value(ptr);
     } catch (const env::Value::ValueError& e) {
         throw std::runtime_error(std::format("Invalid environment variable value format. Error: {}.", e.what()));
     }
@@ -115,4 +121,6 @@ std::string Config::s3SecretKey() const {
 
 Logger::Level Config::logLevel() const { return logLevel_; }
 bool Config::logDebug() const { return logDebug_; }
-bool Config::preview() const { return preview_; }
+bool Config::rendererPreview() const { return rendererPreview_; }
+int Config::rendererPreviewMaxSize() const { return rendererPreviewMaxSize_; }
+int Config::rendererPreviewUpscaleFactor() const { return rendererPreviewUpscaleFactor_; }

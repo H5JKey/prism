@@ -46,17 +46,50 @@ void intSignalHandler(int signal) {
     }
 }
 
-void setLogger() {
-    std::string debugEnv = getEnv("RENDERER_LOG_DEBUG");
-    std::string levelEnv = getEnv("RENDERER_LOG_LEVEL");
+void setLoggerFromEnv() {
+    std::string logDebugEnv = getEnv("RENDERER_LOG_DEBUG");
+    std::string logLevelEnv = getEnv("RENDERER_LOG_LEVEL");
 
-    if (!debugEnv.empty()) {
-        logger.showDebug = (debugEnv == "true");
+    if (!logDebugEnv.empty()) {
+        logger.showDebug = (logDebugEnv == "true");
     }
 
-    if (!levelEnv.empty()) {
-        logger.setMinLevel(logger.getLevelFromString(levelEnv));
+    if (!logLevelEnv.empty()) {
+        logger.setMinLevel(logger.getLevelFromString(logLevelEnv));
     }
+}
+
+struct PreviewInfo {
+    bool enabled = false;
+    int maxSize = 256;
+    int upscaleFactor = 1;
+};
+
+PreviewInfo setPreviewSettingsFromEnv() {
+    std::string rendererPreviewEnv = getEnv("RENDERER_PREVIEW");
+    std::string rendererPreviewMaxSizeEnv = getEnv("RENDERER_PREVIEW_MAX_SIZE");
+    std::string rendererPreviewUpscaleFactorEnv = getEnv("RENDERER_PREVIEW_UPSCALE_FACTOR");
+
+    PreviewInfo previewInfo;
+
+    if (!rendererPreviewEnv.empty()) {
+        previewInfo.enabled = (rendererPreviewEnv == "true");
+    }
+    try {
+        if (!rendererPreviewMaxSizeEnv.empty()) {
+            previewInfo.maxSize = std::stoi(rendererPreviewMaxSizeEnv);
+        }
+    } catch (const std::exception& e) {
+        logger.debug(std::format("RENDERER_PREVIEW_MAX_SIZE is not a integer. Set default value"));
+    }
+    try {
+        if (!rendererPreviewUpscaleFactorEnv.empty()) {
+            previewInfo.upscaleFactor = std::stoi(rendererPreviewUpscaleFactorEnv);
+        }
+    } catch (const std::exception& e) {
+        logger.debug(std::format("RENDERER_PREVIEW_UPSCALE_FACTOR is not a integer. Set default value"));
+    }
+    return previewInfo;
 }
 
 int main() try {
@@ -66,7 +99,8 @@ int main() try {
     sa.sa_flags = 0;
     sigaction(SIGTERM, &sa, nullptr);
 
-    setLogger();
+    setLoggerFromEnv();
+    PreviewInfo previewInfo = setPreviewSettingsFromEnv();
     TargetManager::init();
     SceneLoader sceneLoader;
     try {
@@ -107,6 +141,13 @@ int main() try {
                 total_read += bytes_read;
             }
             logger.debug(std::format("Read {} bytes from pipe for scene", total_read));
+
+            if (previewInfo.enabled) {
+                float scale = std::min(512.0f / task.width, 512.0f / task.height);
+                task.width = std::max(1, int(task.width * scale));
+                task.height = std::max(1, int(task.height * scale));
+                task.samples = 5;
+            }
 
             auto egl = TargetManager::getInstance().createEGLTarget(task.width, task.height);
             Scene scene = sceneLoader.loadGltfFromMemory(sceneData);

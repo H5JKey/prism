@@ -18,7 +18,9 @@ class Config {
     std::optional<std::string> s3SecretKey_;
     Logger::Level logLevel_ = Logger::Level::INFO;  // default
     bool logDebug_ = false;                         // default
-    bool preview_ = false;                          // default
+    bool rendererPreview_ = false;                  // default
+    int rendererPreviewMaxSize_ = 256;              // default
+    int rendererPreviewUpscaleFactor_ = 2;          // default
 
    public:
     Config() = default;
@@ -39,5 +41,7 @@ class Config {
     std::string s3SecretKey() const;
     Logger::Level logLevel() const;
     bool logDebug() const;
-    bool preview() const;
+    bool rendererPreview() const;
+    int rendererPreviewMaxSize() const;
+    int rendererPreviewUpscaleFactor() const;
 };
