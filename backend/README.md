@@ -10,6 +10,8 @@ The backend provides the HTTP API for Prism. It handles users, projects, scene f
 
 The API is available under the `/api/v1` prefix.
 
+Interactive API documentation is available throught Swagger UI at  `/docs`.
+
 ---
 
 ## Key Features
