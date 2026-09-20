@@ -112,7 +112,7 @@ Configuration is provided through environment variables and can be stored in a `
 
 ## API
 
-Most operations require an access token:
+The API base path is `/api/v1`. Most operations require an access token:
 
 ~~~text
 Authorization: Bearer <access_token>
@@ -122,27 +122,27 @@ Authorization: Bearer <access_token>
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/v1/auth/register` | Register a new user |
-| POST | `/v1/auth/login` | Log in |
-| GET | `/v1/auth/refresh` | Refresh an access token |
+| POST | `/api/v1/auth/register` | Register a new user |
+| POST | `/api/v1/auth/login` | Log in |
+| GET | `/api/v1/auth/refresh` | Refresh an access token |
 
 ### Files
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/v1/files/upload` | Upload a scene file |
+| POST | `/api/v1/files/upload` | Upload a scene file |
 
 ### Projects
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/v1/projects/create` | Create a project and render |
-| GET | `/v1/projects/` | Get public projects |
-| GET | `/v1/projects/about-me` | Get your projects |
-| GET | `/v1/projects/user/{user_id}` | Get a user's public projects |
-| GET | `/v1/projects/{project_id}` | Get a project |
-| PATCH | `/v1/projects/{project_id}` | Update a project |
-| DELETE | `/v1/projects/{project_id}` | Delete a project |
+| POST | `/api/v1/projects/create` | Create a project and render |
+| GET | `/api/v1/projects/` | Get public projects |
+| GET | `/api/v1/projects/about-me` | Get your projects |
+| GET | `/api/v1/projects/user/{user_id}` | Get a user's public projects |
+| GET | `/api/v1/projects/{project_id}` | Get a project |
+| PATCH | `/api/v1/projects/{project_id}` | Update a project |
+| DELETE | `/api/v1/projects/{project_id}` | Delete a project |
 
 Render settings include resolution, samples, denoiser, GPU usage, background and sun parameters.
 
@@ -150,18 +150,18 @@ Render settings include resolution, samples, denoiser, GPU usage, background and
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/v1/tags/create` | Add a tag to a project |
-| GET | `/v1/tags/project/{project_id}` | Get project tags |
-| DELETE | `/v1/tags/{tag_id}` | Delete a tag |
+| POST | `/api/v1/tags/create` | Add a tag to a project |
+| GET | `/api/v1/tags/project/{project_id}` | Get project tags |
+| DELETE | `/api/v1/tags/{tag_id}` | Delete a tag |
 
 ### Users
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/v1/users/about-me` | Get your profile |
-| PUT | `/v1/users/about-me` | Update your profile |
-| DELETE | `/v1/users/about-me` | Delete your account |
-| GET | `/v1/users/{user_id}` | Get public user information |
+| GET | `/api/v1/users/about-me` | Get your profile |
+| PUT | `/api/v1/users/about-me` | Update your profile |
+| DELETE | `/api/v1/users/about-me` | Delete your account |
+| GET | `/api/v1/users/{user_id}` | Get public user information |
 
 ---
 
