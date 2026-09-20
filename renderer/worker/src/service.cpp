@@ -107,6 +107,11 @@ int execRenderer(const Config& config) {
         resultPipe.close_write();
         std::string debugEnv = "RENDERER_LOG_DEBUG=" + std::string(config.logDebug() ? "true" : "false");
         std::string logLevelEnv = "RENDERER_LOG_LEVEL=" + Logger::getStringFromLevel(config.logLevel());
+        std::string rendererPreviewEnv = "RENDERER_PREVIEW=" + std::string(config.rendererPreview() ? "true" : "false");
+        std::string rendererPreviewMaxSizeEnv =
+            "RENDERER_PREVIEW_MAX_SIZE=" + std::to_string(config.rendererPreviewMaxSize());
+        std::string rendererPreviewUpscaleFactorEnv =
+            "RENDERER_PREVIEW_UPSCALE=" + std::to_string(config.rendererPreviewUpscaleFactor());
         const char* envp[] = {debugEnv.c_str(), logLevelEnv.c_str(), nullptr};
 
         std::filesystem::path rendererPath = std::filesystem::read_symlink("/proc/self/exe").parent_path() / "renderer";
@@ -210,11 +215,6 @@ int main() try {
             producer.produce(config.kafkaTopicDLQ(), deadLetter.dump());
             logger.error("Failed to process message. Listening...");
             continue;
-        }
-        if (config.preview()) {
-            task.height = 200 * (static_cast<float>(task.height) / task.width);
-            task.width = 200;
-            task.samples = 5;
         }
         try {
             std::vector<uint8_t> glbData;

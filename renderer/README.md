@@ -232,11 +232,14 @@ The worker can be configured using environment variables or a `.env` file in the
 | `S3_SECRET_KEY`	| S3 secret key	| Yes | `-` |
 | `LOG_LEVEL`	| Log level (DEBUG, INFO, WARNING, ERROR)	|	No | `INFO` |
 | `LOG_DEBUG`	| Enable debug logging (true/false)	| No | `true` |
-| `RENDERER_PREVIEW` | Generate image in lower resolution and only 5 samples (true/false) | No | `false` |
+| `RENDERER_PREVIEW` | Render image in lower resolution and only 5 samples (true/false) | No | `false` |
+| `RENDERER_PREVIEW_MAX_SIZE` | Max dimension of preview image in pixels | No | `256` |
+| `RENDERER_PREVIEW_UPSCALE_FACTOR` | Scaling factor applied to the preview (1 to turn upscaler off) | No | `2` |
+
 
 ### Preview Mode
 
-The worker can be configured to generate preview images. When preview mode is enabled, the renderer produces lower-quality outputs significantly faster, allowing you to verify scene composition and camera angles before committing to full-resolution renders.
+The worker can be configured to generate preview images. When preview mode is enabled, the renderer produces lower-quality outputs significantly faster and upscale it, allowing you to verify scene composition and camera angles before committing to full-resolution renders.
 
 <table>
   <tr>
