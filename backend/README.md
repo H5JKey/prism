@@ -8,7 +8,7 @@
 
 The backend provides the HTTP API for Prism. It handles users, projects, scene files, render settings and render jobs.
 
-The API is available under the `/v1` prefix.
+The API is available under the `/api/v1` prefix.
 
 ---
 
@@ -128,8 +128,8 @@ The uploaded file ID is used when creating a project.
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `api/v1/projects/create` | Create a project and render |
-| GET | `api/v1/projects/` | Get public projects |
+| POST | `/api/v1/projects/create` | Create a project and render |
+| GET | `/api/v1/projects/` | Get public projects |
 | GET | `/api/v1/projects/about-me` | Get your projects |
 | GET | `/api/v1/projects/user/{user_id}` | Get a user's public projects |
 | GET | `/api/v1/projects/{project_id}` | Get a project |
