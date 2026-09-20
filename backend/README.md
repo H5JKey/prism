@@ -6,11 +6,12 @@
 
 ## Overview
 
-The backend provides the HTTP API for Prism. It handles users, projects, scene files, render settings and render jobs.
+The backend provides the HTTP API for PriZm. It handles users, projects, scene files, render settings and render jobs.
 
 The API is available under the `/api/v1` prefix.
 
-Interactive API documentation is available throught Swagger UI at  `/docs`.
+Interactive API documentation is available through Swagger UI at `/docs`.
+An alternative ReDoc interface is available at `/redoc`.
 
 ---
 
@@ -110,78 +111,7 @@ A typical workflow is:
 4. Monitor the project render status.
 5. Access the rendered result when it is ready.
 
-### Authentication
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/auth/register` | Register a new user |
-| POST | `/api/v1/auth/login` | Log in |
-| GET | `/api/v1/auth/refresh` | Refresh an access token |
-
-### Files
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/files/upload` | Upload a scene file |
-
-The uploaded file ID is used when creating a project.
-
-### Projects
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/projects/create` | Create a project and render |
-| GET | `/api/v1/projects/` | Get public projects |
-| GET | `/api/v1/projects/about-me` | Get your projects |
-| GET | `/api/v1/projects/user/{user_id}` | Get a user's public projects |
-| GET | `/api/v1/projects/{project_id}` | Get a project |
-| PATCH | `/api/v1/projects/{project_id}` | Update a project |
-| DELETE | `/api/v1/projects/{project_id}` | Delete a project |
-
-A render is configured when the project is created. The render settings include resolution, samples, denoiser, GPU usage, background and sun parameters.
-
-Example:
-
-```json
-{
-  "project": {
-    "name": "My Scene",
-    "description": "Test render",
-    "source_file_id": 1,
-    "visibility": "public"
-  },
-  "render": {
-    "width": 1920,
-    "height": 1080,
-    "samples": 128,
-    "denoiser": true,
-    "gpu": true,
-    "background": [0.1, 0.1, 0.1],
-    "sun": {
-      "direction": [0.0, 1.0, 0.0],
-      "color": [1.0, 0.8, 0.5],
-      "exponent": 10
-    }
-  }
-}
-```
-
-### Tags
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/tags/create` | Add a tag to a project |
-| GET | `/api/v1/tags/project/{project_id}` | Get project tags |
-| DELETE | `/api/v1/tags/{tag_id}` | Delete a tag |
-
-### Users
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/users/about-me` | Get your profile |
-| PUT | `/api/v1/users/about-me` | Update your profile |
-| DELETE | `/api/v1/users/about-me` | Delete your account |
-| GET | `/api/v1/users/{user_id}` | Get public user information |
+For the complete list of endpoints, request parameters, schemas and responses, use the interactive API documentation at `/docs`.
 
 ---
 
