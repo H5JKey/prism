@@ -4,11 +4,14 @@
 
 ---
 
-## Overview
+## Prism Backend
 
-The backend provides the HTTP API for Prism. It handles users, projects, scene files, render settings and render jobs.
-
-The API is available under the `/v1` prefix.
+<table>
+  <tr>
+    <td><img src="../renderer/images/cornell.png" alt="Cornell box" width="400"></td>
+    <td><img src="../renderer/images/room.png" alt="Room" width="400"></td>
+  </tr>
+</table>
 
 ---
 
@@ -79,8 +82,6 @@ For a complete setup, use the repository's Docker Compose configuration.
 
 Configuration is provided through environment variables and can be stored in a `.env` file.
 
-The main configuration groups are:
-
 | Group | Purpose |
 |-------|---------|
 | Database | PostgreSQL connection |
@@ -121,8 +122,6 @@ A typical workflow is:
 |--------|----------|-------------|
 | POST | `/v1/files/upload` | Upload a scene file |
 
-The uploaded file ID is used when creating a project.
-
 ### Projects
 
 | Method | Endpoint | Description |
@@ -135,33 +134,7 @@ The uploaded file ID is used when creating a project.
 | PATCH | `/v1/projects/{project_id}` | Update a project |
 | DELETE | `/v1/projects/{project_id}` | Delete a project |
 
-A render is configured when the project is created. The render settings include resolution, samples, denoiser, GPU usage, background and sun parameters.
-
-Example:
-
-```json
-{
-  "project": {
-    "name": "My Scene",
-    "description": "Test render",
-    "source_file_id": 1,
-    "visibility": "public"
-  },
-  "render": {
-    "width": 1920,
-    "height": 1080,
-    "samples": 128,
-    "denoiser": true,
-    "gpu": true,
-    "background": [0.1, 0.1, 0.1],
-    "sun": {
-      "direction": [0.0, 1.0, 0.0],
-      "color": [1.0, 0.8, 0.5],
-      "exponent": 10
-    }
-  }
-}
-```
+Render settings include resolution, samples, denoiser, GPU usage, background and sun parameters.
 
 ### Tags
 
