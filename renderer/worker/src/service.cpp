@@ -111,8 +111,14 @@ int execRenderer(const Config& config) {
         std::string rendererPreviewMaxSizeEnv =
             "RENDERER_PREVIEW_MAX_SIZE=" + std::to_string(config.rendererPreviewMaxSize());
         std::string rendererPreviewUpscaleFactorEnv =
-            "RENDERER_PREVIEW_UPSCALE=" + std::to_string(config.rendererPreviewUpscaleFactor());
-        const char* envp[] = {debugEnv.c_str(), logLevelEnv.c_str(), nullptr};
+            "RENDERER_PREVIEW_UPSCALE_FACTOR=" + std::to_string(config.rendererPreviewUpscaleFactor());
+        const char* envp[] = {debugEnv.c_str(),
+                              logLevelEnv.c_str(),
+                              rendererPreviewEnv.c_str(),
+                              rendererPreviewEnv.c_str(),
+                              rendererPreviewMaxSizeEnv.c_str(),
+                              rendererPreviewUpscaleFactorEnv.c_str(),
+                              nullptr};
 
         std::filesystem::path rendererPath = std::filesystem::read_symlink("/proc/self/exe").parent_path() / "renderer";
         execle(rendererPath.c_str(), "renderer", nullptr, envp);

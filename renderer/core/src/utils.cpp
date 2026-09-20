@@ -8,6 +8,7 @@
 #include <format>
 #include <fstream>
 #include <sstream>
+#include <stdexcept>
 
 std::string utils::readFromFile(const std::filesystem::path& path) {
     std::string source;
@@ -24,7 +25,7 @@ std::string utils::readFromFile(const std::filesystem::path& path) {
 
 void utils::rgbaToRgb(const std::vector<float>& rgba, std::vector<float>& rgb) {
     if (rgba.size() % 4 != 0) {
-        throw std::runtime_error("RGBA buffer size must be multiple of 4");
+        throw std::invalid_argument("RGBA buffer size must be multiple of 4");
     }
     rgb.resize((rgba.size() / 4) * 3);
     size_t pixels = rgba.size() / 4;
@@ -37,7 +38,7 @@ void utils::rgbaToRgb(const std::vector<float>& rgba, std::vector<float>& rgb) {
 
 void utils::rgbToRgba(const std::vector<float>& rgb, std::vector<float>& rgba) {
     if (rgb.size() % 3 != 0) {
-        throw std::runtime_error("RGB buffer size must be multiple of 3");
+        throw std::invalid_argument("RGB buffer size must be multiple of 3");
     }
     rgba.resize((rgb.size() / 3) * 4);
     size_t pixels = rgb.size() / 3;
@@ -51,7 +52,7 @@ void utils::rgbToRgba(const std::vector<float>& rgb, std::vector<float>& rgba) {
 
 void utils::rgbaToRgb(const std::vector<uint8_t>& rgba, std::vector<uint8_t>& rgb) {
     if (rgba.size() % 4 != 0) {
-        throw std::runtime_error("RGBA buffer size must be multiple of 4");
+        throw std::invalid_argument("RGBA buffer size must be multiple of 4");
     }
     rgb.resize((rgba.size() / 4) * 3);
     size_t pixels = rgba.size() / 4;
@@ -64,7 +65,7 @@ void utils::rgbaToRgb(const std::vector<uint8_t>& rgba, std::vector<uint8_t>& rg
 
 void utils::rgbToRgba(const std::vector<uint8_t>& rgb, std::vector<uint8_t>& rgba) {
     if (rgb.size() % 3 != 0) {
-        throw std::runtime_error("RGB buffer size must be multiple of 3");
+        throw std::invalid_argument("RGB buffer size must be multiple of 3");
     }
     rgba.resize((rgb.size() / 3) * 4);
     size_t pixels = rgb.size() / 3;
@@ -77,10 +78,10 @@ void utils::rgbToRgba(const std::vector<uint8_t>& rgb, std::vector<uint8_t>& rgb
 }
 
 std::vector<std::uint8_t> utils::writeToPng(const std::vector<uint8_t>& pixels, int width, int height, int channels) {
-    if (pixels.size() == 0) throw std::runtime_error("Writing empty image");
+    if (pixels.size() == 0) throw std::invalid_argument("Writing empty image");
 
     if (pixels.size() != static_cast<size_t>(width * height * channels)) {
-        throw std::runtime_error("Pixel data size mismatch");
+        throw std::invalid_argument("Pixel data size mismatch");
     }
 
     int outputSize = 0;
@@ -96,10 +97,10 @@ std::vector<std::uint8_t> utils::writeToPng(const std::vector<uint8_t>& pixels, 
 }
 
 std::vector<std::uint8_t> utils::writeToPng(const std::vector<float>& pixels, int width, int height, int channels) {
-    if (pixels.size() == 0) throw std::runtime_error("Writing empty image");
+    if (pixels.size() == 0) throw std::invalid_argument("Writing empty image");
 
     if (pixels.size() != static_cast<size_t>(width * height * channels)) {
-        throw std::runtime_error("Pixel data size mismatch");
+        throw std::invalid_argument("Pixel data size mismatch");
     }
     std::vector<unsigned char> normalizedPixels(width * height * channels);
     for (int i = 0; i < pixels.size(); i++)
@@ -119,10 +120,10 @@ std::vector<std::uint8_t> utils::writeToPng(const std::vector<float>& pixels, in
 
 void utils::writeToPng(const std::vector<float>& pixels, int width, int height, int channels,
                        const std::filesystem::path& path) {
-    if (pixels.size() == 0) throw std::runtime_error("Writing empty image");
+    if (pixels.size() == 0) throw std::invalid_argument("Writing empty image");
 
     if (pixels.size() != static_cast<size_t>(width * height * channels)) {
-        throw std::runtime_error("Pixel data size mismatch");
+        throw std::invalid_argument("Pixel data size mismatch");
     }
     std::vector<unsigned char> normalizedPixels(width * height * channels);
     for (int i = 0; i < pixels.size(); i++)
@@ -132,10 +133,10 @@ void utils::writeToPng(const std::vector<float>& pixels, int width, int height, 
 
 void utils::writeToPng(const std::vector<uint8_t>& pixels, int width, int height, int channels,
                        const std::filesystem::path& path) {
-    if (pixels.size() == 0) throw std::runtime_error("Writing empty image");
+    if (pixels.size() == 0) throw std::invalid_argument("Writing empty image");
 
     if (pixels.size() != static_cast<size_t>(width * height * channels)) {
-        throw std::runtime_error("Pixel data size mismatch");
+        throw std::invalid_argument("Pixel data size mismatch");
     }
     stbi_write_png(path.c_str(), width, height, channels, pixels.data(), width * channels);
 }
@@ -152,7 +153,7 @@ void utils::readImage(const std::filesystem::path& filename, int& width, int& he
 
 void utils::readImageFromMemory(const std::byte* memoryBuffer, size_t size, int& width, int& height, int& channels,
                                 std::vector<uint8_t>& result) {
-    if (!memoryBuffer || size == 0) throw std::runtime_error("Data buffer is empty");
+    if (!memoryBuffer || size == 0) throw std::invalid_argument("Data buffer is empty");
     const unsigned char* buffer = reinterpret_cast<const unsigned char*>(memoryBuffer);
     unsigned char* data =
         stbi_load_from_memory(buffer, static_cast<int>(size), &width, &height, &channels, STBI_rgb_alpha);

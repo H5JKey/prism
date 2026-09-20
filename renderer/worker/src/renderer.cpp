@@ -18,6 +18,7 @@
 #include "render-engine.hpp"
 #include "scene-loader.hpp"
 #include "target-manager.hpp"
+#include "upscaler.hpp"
 #include "utils.hpp"
 
 std::string getEnv(const std::string& name) {
@@ -103,6 +104,7 @@ int main() try {
     PreviewInfo previewInfo = setPreviewSettingsFromEnv();
     TargetManager::init();
     SceneLoader sceneLoader;
+    Upscaler upscaler;
     try {
         engine = std::make_unique<RenderEngine>();
         logger.debug("RenderEngine created successfully");
@@ -115,6 +117,7 @@ int main() try {
     sigaction(SIGINT, &sa, nullptr);
 
     logger.info(std::format("Renderer worker started (PID: {})", getpid()));
+    if (previewInfo.enabled) logger.info("Preview mode enabled");
     errno = 0;
     while (running) {
         TaskHeader task;
@@ -143,7 +146,8 @@ int main() try {
             logger.debug(std::format("Read {} bytes from pipe for scene", total_read));
 
             if (previewInfo.enabled) {
-                float scale = std::min(512.0f / task.width, 512.0f / task.height);
+                float scale = std::min(static_cast<float>(previewInfo.maxSize) / task.width,
+                                       static_cast<float>(previewInfo.maxSize) / task.height);
                 task.width = std::max(1, int(task.width * scale));
                 task.height = std::max(1, int(task.height * scale));
                 task.samples = 5;
@@ -162,6 +166,14 @@ int main() try {
             if (!stopRequested) {
                 ContextGuard guard(*egl);
                 auto data = egl->getBufferData<uint8_t>(egl->getOutputTexture());
+                try {
+                    if (previewInfo.enabled) {
+                        logger.debug(std::format("Upscaling preview image (x{})", previewInfo.upscaleFactor));
+                        upscaler.upscale(data, task.width, task.height, 4, previewInfo.upscaleFactor);
+                    }
+                } catch (const std::exception& e) {
+                    throw std::runtime_error(std::format("Upscaler failed. Reason: {}", e.what()));
+                }
                 std::vector<uint8_t> result = utils::writeToPng(data, task.width, task.height, 4);
                 ResultHeader resultHeader;
                 resultHeader.resultDataSize = result.size();
