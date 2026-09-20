@@ -62,8 +62,6 @@ The backend uses environment variables for configuration.
 
 Create a `.env` file in the `backend` directory. Nested settings use `__` as a separator.
 
-### Database
-
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `DATABASE__USERNAME` | PostgreSQL username | `username` |
@@ -78,11 +76,6 @@ Create a `.env` file in the `backend` directory. Nested settings use `__` as a s
 | `DATABASE__POOL_PRE_PING` | Check connections before use | `true` |
 | `DATABASE__EXPIRE_ON_COMMIT` | Expire ORM objects after commit | `true` |
 | `DATABASE__ECHO` | Enable SQLAlchemy SQL logging | `false` |
-
-### S3 / MinIO
-
-| Variable | Description | Default |
-|----------|-------------|---------|
 | `MINIO__HOST` | S3 / MinIO host | `minio` |
 | `MINIO__PORT` | S3 / MinIO port | `9000` |
 | `MINIO__USERNAME` | S3 / MinIO access key | `adminadmin` |
@@ -90,11 +83,6 @@ Create a `.env` file in the `backend` directory. Nested settings use `__` as a s
 | `MINIO__BUCKET__GLB_SOURCES` | Bucket for source GLB files | `input` |
 | `MINIO__BUCKET__RENDERS` | Bucket for rendered images | `output` |
 | `MINIO__PRESIGNED_URL_TTL_SECONDS` | Lifetime of generated presigned URLs | `600` |
-
-### Kafka
-
-| Variable | Description | Default |
-|----------|-------------|---------|
 | `KAFKA__HOST` | Kafka broker host | `kafka` |
 | `KAFKA__PORT` | Kafka broker port | `9092` |
 | `KAFKA__GROUP_ID` | Kafka consumer group ID | `backend` |
@@ -103,21 +91,11 @@ Create a `.env` file in the `backend` directory. Nested settings use `__` as a s
 | `KAFKA__TOPIC__PROJECT_CREATED` | Topic for project creation events | `create_project` |
 | `KAFKA__TOPIC__RENDER_GENERATED` | Topic for render result events | `generate_model` |
 | `KAFKA__TOPIC__DEAD_LETTER_QUEUE` | Dead letter queue topic | `dead_letter_queue` |
-
-### JWT
-
-| Variable | Description | Default |
-|----------|-------------|---------|
 | `JWT__ACCESS_TOKEN_EXPIRES_IN_MINUTES` | Access token lifetime | `15` |
 | `JWT__REFRESH_TOKEN_EXPIRES_IN_MINUTES` | Refresh token lifetime | `43200` |
 | `JWT__ALGORITHM` | JWT signing algorithm | `RS256` |
 | `JWT__PUBLIC_KEY_PATH` | Path to JWT public key | `certs/jwt-public.pem` |
 | `JWT__PRIVATE_KEY_PATH` | Path to JWT private key | `certs/jwt-private.pem` |
-
-### Logging
-
-| Variable | Description | Default |
-|----------|-------------|---------|
 | `LOGGING__LEVEL` | Logging level | `DEBUG` |
 | `LOGGING__BASE_LOGGER_NAME` | Base logger name | `backend` |
 | `LOGGING__FORMATTER__FORMAT` | Log message format | See configuration |
