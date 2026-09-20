@@ -62,31 +62,66 @@ The backend uses environment variables for configuration.
 
 Create a `.env` file in the `backend` directory. Nested settings use `__` as a separator.
 
-| Variable | Description | Required | Default |
-|----------|-------------|----------|---------|
-| `DATABASE__USERNAME` | PostgreSQL username | No | `username` |
-| `DATABASE__PASSWORD` | PostgreSQL password | No | `password` |
-| `DATABASE__HOST` | PostgreSQL host | No | `localhost` |
-| `DATABASE__PORT` | PostgreSQL port | No | `5432` |
-| `DATABASE__DB_NAME` | PostgreSQL database name | No | `renderer` |
-| `MINIO__HOST` | S3 / MinIO host | No | `minio` |
-| `MINIO__PORT` | S3 / MinIO port | No | `9000` |
-| `MINIO__USERNAME` | S3 / MinIO access key | No | `adminadmin` |
-| `MINIO__PASSWORD` | S3 / MinIO secret key | No | `adminadmin` |
-| `MINIO__BUCKET__GLB_SOURCES` | Bucket for source GLB files | No | `input` |
-| `MINIO__BUCKET__RENDERS` | Bucket for rendered images | No | `output` |
-| `KAFKA__HOST` | Kafka broker host | No | `kafka` |
-| `KAFKA__PORT` | Kafka broker port | No | `9092` |
-| `KAFKA__GROUP_ID` | Kafka consumer group ID | No | `backend` |
-| `KAFKA__TOPIC__PROJECT_CREATED` | Topic for project creation events | No | `create_project` |
-| `KAFKA__TOPIC__RENDER_GENERATED` | Topic for render result events | No | `generate_model` |
-| `KAFKA__TOPIC__DEAD_LETTER_QUEUE` | Dead letter queue topic | No | `dead_letter_queue` |
-| `JWT__ACCESS_TOKEN_EXPIRES_IN_MINUTES` | Access token lifetime | No | `15` |
-| `JWT__REFRESH_TOKEN_EXPIRES_IN_MINUTES` | Refresh token lifetime | No | `43200` |
-| `JWT__ALGORITHM` | JWT signing algorithm | No | `RS256` |
-| `JWT__PUBLIC_KEY_PATH` | Path to JWT public key | No | `certs/jwt-public.pem` |
-| `JWT__PRIVATE_KEY_PATH` | Path to JWT private key | No | `certs/jwt-private.pem` |
-| `LOGGING__LEVEL` | Logging level | No | `DEBUG` |
+### Database
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DATABASE__USERNAME` | PostgreSQL username | `username` |
+| `DATABASE__PASSWORD` | PostgreSQL password | `password` |
+| `DATABASE__HOST` | PostgreSQL host | `localhost` |
+| `DATABASE__PORT` | PostgreSQL port | `5432` |
+| `DATABASE__DB_NAME` | PostgreSQL database name | `renderer` |
+| `DATABASE__POOL_SIZE` | SQLAlchemy connection pool size | `5` |
+| `DATABASE__MAX_OVERFLOW` | Maximum additional connections | `10` |
+| `DATABASE__POOL_TIMEOUT` | Connection pool timeout in seconds | `30` |
+| `DATABASE__POOL_RECYCLE` | Connection recycle time in seconds | `3600` |
+| `DATABASE__POOL_PRE_PING` | Check connections before use | `true` |
+| `DATABASE__EXPIRE_ON_COMMIT` | Expire ORM objects after commit | `true` |
+| `DATABASE__ECHO` | Enable SQLAlchemy SQL logging | `false` |
+
+### S3 / MinIO
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `MINIO__HOST` | S3 / MinIO host | `minio` |
+| `MINIO__PORT` | S3 / MinIO port | `9000` |
+| `MINIO__USERNAME` | S3 / MinIO access key | `adminadmin` |
+| `MINIO__PASSWORD` | S3 / MinIO secret key | `adminadmin` |
+| `MINIO__BUCKET__GLB_SOURCES` | Bucket for source GLB files | `input` |
+| `MINIO__BUCKET__RENDERS` | Bucket for rendered images | `output` |
+| `MINIO__PRESIGNED_URL_TTL_SECONDS` | Lifetime of generated presigned URLs | `600` |
+
+### Kafka
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `KAFKA__HOST` | Kafka broker host | `kafka` |
+| `KAFKA__PORT` | Kafka broker port | `9092` |
+| `KAFKA__GROUP_ID` | Kafka consumer group ID | `backend` |
+| `KAFKA__BASE_DELAY_SECONDS` | Initial retry delay | `1` |
+| `KAFKA__MAX_DELAY_SECONDS` | Maximum retry delay | `120` |
+| `KAFKA__TOPIC__PROJECT_CREATED` | Topic for project creation events | `create_project` |
+| `KAFKA__TOPIC__RENDER_GENERATED` | Topic for render result events | `generate_model` |
+| `KAFKA__TOPIC__DEAD_LETTER_QUEUE` | Dead letter queue topic | `dead_letter_queue` |
+
+### JWT
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `JWT__ACCESS_TOKEN_EXPIRES_IN_MINUTES` | Access token lifetime | `15` |
+| `JWT__REFRESH_TOKEN_EXPIRES_IN_MINUTES` | Refresh token lifetime | `43200` |
+| `JWT__ALGORITHM` | JWT signing algorithm | `RS256` |
+| `JWT__PUBLIC_KEY_PATH` | Path to JWT public key | `certs/jwt-public.pem` |
+| `JWT__PRIVATE_KEY_PATH` | Path to JWT private key | `certs/jwt-private.pem` |
+
+### Logging
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `LOGGING__LEVEL` | Logging level | `DEBUG` |
+| `LOGGING__BASE_LOGGER_NAME` | Base logger name | `backend` |
+| `LOGGING__FORMATTER__FORMAT` | Log message format | See configuration |
+| `LOGGING__FORMATTER__DATEFMT` | Log date format | `%Y-%m-%d %H:%M:%S` |
 
 Environment variables take precedence over values defined in the `.env` file.
 
