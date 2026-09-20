@@ -6,15 +6,29 @@
 
 ## Prism Backend
 
-~~~mermaid
-flowchart LR
-    Client --> API[FastAPI API]
-    API --> DB[(PostgreSQL)]
-    API --> S3[(S3 / MinIO)]
-    API --> Kafka[(Kafka)]
-    Kafka --> Worker[Renderer Worker]
-    Worker --> Kafka
-    Worker --> S3
+~~~text
+                         ┌─────────────────┐
+                         │     Client      │
+                         └────────┬────────┘
+                                  │ HTTP
+                                  ▼
+                         ┌─────────────────┐
+                         │    FastAPI      │
+                         │      API        │
+                         └───────┬─────────┘
+                                 │
+              ┌──────────────────┼──────────────────┐
+              │                  │                  │
+              ▼                  ▼                  ▼
+        ┌───────────┐      ┌───────────┐      ┌───────────┐
+        │ PostgreSQL│      │  S3/MinIO │      │   Kafka   │
+        │  Database │      │  Storage   │      │   Queue   │
+        └───────────┘      └───────────┘      └─────┬─────┘
+                                                    │
+                                                    ▼
+                                           ┌─────────────────┐
+                                           │ Renderer Worker │
+                                           └─────────────────┘
 ~~~
 
 ---
@@ -104,16 +118,6 @@ Most operations require an access token:
 Authorization: Bearer <access_token>
 ~~~
 
-A typical workflow:
-
-~~~mermaid
-flowchart LR
-    A[Register / Login] --> B[Upload Scene]
-    B --> C[Create Project]
-    C --> D[Render]
-    D --> E[Get Result]
-~~~
-
 ### Authentication
 
 | Method | Endpoint | Description |
@@ -165,21 +169,22 @@ Render settings include resolution, samples, denoiser, GPU usage, background and
 
 Creating a project also creates its render job.
 
-~~~mermaid
-sequenceDiagram
-    participant C as Client
-    participant A as API
-    participant K as Kafka
-    participant W as Renderer Worker
-    participant S as S3 / MinIO
-
-    C->>A: Create project
-    A->>K: Render task
-    K->>W: Render task
-    W->>S: Store result
-    W->>K: Render result
-    K->>A: Update status
-    A-->>C: Render status / result
+~~~text
+Client          API           Kafka        Renderer        Storage
+  │              │              │             │               │
+  │ Create       │              │             │               │
+  │ project ────►│              │             │               │
+  │              │ Render task │             │               │
+  │              ├─────────────►│             │               │
+  │              │              │ Task        │               │
+  │              ├─────────────►│────────────►│               │
+  │              │              │             │ Render        │
+  │              │              │             ├──────────────►│
+  │              │              │             │               │
+  │              │              │ Result      │               │
+  │              │◄─────────────┼─────────────┤               │
+  │ Result       │              │             │               │
+  │◄─────────────│              │             │               │
 ~~~
 
 ---
