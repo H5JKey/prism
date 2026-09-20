@@ -243,7 +243,7 @@ The worker can be configured to generate preview images. When preview mode is en
 
 <table>
   <tr>
-    <th>Full Render (1920x1080, 1000 samples)</th>
+    <th>Full Render (1920x1080, 256 samples)</th>
     <th>Preview Mode (480x270, 5 samples, x4 bilinear upscale)</th> 
   </tr>
   <tr>
