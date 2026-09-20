@@ -61,6 +61,8 @@ docker run --rm -p 8000:8000 prism-backend
 The backend uses environment variables for configuration.
 
 Create a `.env` file in the `backend` directory. Nested settings use `__` as a separator.
+> [!IMPORTANT]
+> Environment variables take precedence over values defined in the `.env` file.
 
 | Variable | Description | Default |
 |----------|-------------|---------|
@@ -100,10 +102,6 @@ Create a `.env` file in the `backend` directory. Nested settings use `__` as a s
 | `LOGGING__BASE_LOGGER_NAME` | Base logger name | `backend` |
 | `LOGGING__FORMATTER__FORMAT` | Log message format | See configuration |
 | `LOGGING__FORMATTER__DATEFMT` | Log date format | `%Y-%m-%d %H:%M:%S` |
-
-Environment variables take precedence over values defined in the `.env` file.
-
-Make sure the required environment variables are set before starting the backend.
 
 ## API Documentation
 
