@@ -2,28 +2,24 @@
 
 > FastAPI backend for distributed physically based rendering
 
----
-
 ## Overview
 
 The backend provides the HTTP API for Prism. It handles users, projects, scene files, render settings and render jobs.
 
-The API is available under the `/v1` prefix.
+The API is available under the `/api/v1` prefix.
 
 ---
 
 ## Key Features
 
-- **REST API** – FastAPI-based HTTP API
-- **Authentication** – JWT access and refresh tokens
-- **Projects** – Create and manage rendering projects
-- **File Storage** – Upload scene files and access rendered results through S3-compatible storage
-- **Render Jobs** – Submit rendering tasks through Kafka
-- **Async Database** – PostgreSQL with SQLAlchemy and asyncpg
-- **Tags** – Organize projects with tags
-- **Validation** – Request and response validation with Pydantic
-
----
+- REST API — FastAPI-based HTTP API
+- Authentication — JWT access and refresh tokens
+- Projects — Create and manage rendering projects
+- File Storage — Upload scene files and access rendered results through S3-compatible storage
+- Render Jobs — Submit rendering tasks through Kafka
+- Async Database — PostgreSQL with SQLAlchemy and asyncpg
+- Tags — Organize projects with tags
+- Validation — Request and response validation with Pydantic
 
 ## Tech Stack
 
@@ -43,25 +39,13 @@ The API is available under the `/v1` prefix.
 
 ## Running the Backend
 
-The backend requires Python 3.13+ and PostgreSQL, Kafka and an S3-compatible object store.
-
 ### Poetry
 
 ```bash
 cd backend
 poetry install
 source $(poetry env info --path)/bin/activate
-```
-
-Configure the required environment variables, then apply migrations:
-
-```bash
 alembic upgrade head
-```
-
-Start the application:
-
-```bash
 uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
@@ -72,116 +56,58 @@ docker build --file backend/Dockerfile -t prism-backend .
 docker run --rm -p 8000:8000 prism-backend
 ```
 
-For a complete setup, use the repository's Docker Compose configuration.
-
----
-
 ## Configuration
 
-Configuration is provided through environment variables and can be stored in a `.env` file.
+The backend uses environment variables for configuration.
 
-The main configuration groups are:
+Create a `.env` file in the `backend` directory. Nested settings use `__` as a separator.
+> [!IMPORTANT]
+> Environment variables take precedence over values defined in the `.env` file.
 
-| Group | Purpose |
-|-------|---------|
-| Database | PostgreSQL connection |
-| Kafka | Broker and render-task topics |
-| MinIO / S3 | Object storage |
-| JWT | Authentication |
-| Application | General backend settings |
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DATABASE__USERNAME` | PostgreSQL username | `username` |
+| `DATABASE__PASSWORD` | PostgreSQL password | `password` |
+| `DATABASE__HOST` | PostgreSQL host | `localhost` |
+| `DATABASE__PORT` | PostgreSQL port | `5432` |
+| `DATABASE__DB_NAME` | PostgreSQL database name | `renderer` |
+| `DATABASE__POOL_SIZE` | SQLAlchemy connection pool size | `5` |
+| `DATABASE__MAX_OVERFLOW` | Maximum additional connections | `10` |
+| `DATABASE__POOL_TIMEOUT` | Connection pool timeout in seconds | `30` |
+| `DATABASE__POOL_RECYCLE` | Connection recycle time in seconds | `3600` |
+| `DATABASE__POOL_PRE_PING` | Check connections before use | `true` |
+| `DATABASE__EXPIRE_ON_COMMIT` | Expire ORM objects after commit | `true` |
+| `DATABASE__ECHO` | Enable SQLAlchemy SQL logging | `false` |
+| `MINIO__HOST` | S3 / MinIO host | `minio` |
+| `MINIO__PORT` | S3 / MinIO port | `9000` |
+| `MINIO__USERNAME` | S3 / MinIO access key | `adminadmin` |
+| `MINIO__PASSWORD` | S3 / MinIO secret key | `adminadmin` |
+| `MINIO__BUCKET__GLB_SOURCES` | Bucket for source GLB files | `input` |
+| `MINIO__BUCKET__RENDERS` | Bucket for rendered images | `output` |
+| `MINIO__PRESIGNED_URL_TTL_SECONDS` | Lifetime of generated presigned URLs | `600` |
+| `KAFKA__HOST` | Kafka broker host | `kafka` |
+| `KAFKA__PORT` | Kafka broker port | `9092` |
+| `KAFKA__GROUP_ID` | Kafka consumer group ID | `backend` |
+| `KAFKA__BASE_DELAY_SECONDS` | Initial retry delay | `1` |
+| `KAFKA__MAX_DELAY_SECONDS` | Maximum retry delay | `120` |
+| `KAFKA__TOPIC__PROJECT_CREATED` | Topic for project creation events | `create_project` |
+| `KAFKA__TOPIC__RENDER_GENERATED` | Topic for render result events | `generate_model` |
+| `KAFKA__TOPIC__DEAD_LETTER_QUEUE` | Dead letter queue topic | `dead_letter_queue` |
+| `JWT__ACCESS_TOKEN_EXPIRES_IN_MINUTES` | Access token lifetime | `15` |
+| `JWT__REFRESH_TOKEN_EXPIRES_IN_MINUTES` | Refresh token lifetime | `43200` |
+| `JWT__ALGORITHM` | JWT signing algorithm | `RS256` |
+| `JWT__PUBLIC_KEY_PATH` | Path to JWT public key | `certs/jwt-public.pem` |
+| `JWT__PRIVATE_KEY_PATH` | Path to JWT private key | `certs/jwt-private.pem` |
+| `LOGGING__LEVEL` | Logging level | `DEBUG` |
+| `LOGGING__BASE_LOGGER_NAME` | Base logger name | `backend` |
+| `LOGGING__FORMATTER__FORMAT` | Log message format | See configuration |
+| `LOGGING__FORMATTER__DATEFMT` | Log date format | `%Y-%m-%d %H:%M:%S` |
 
----
+## API Documentation
 
-## API
+Interactive API documentation is available through Swagger UI at `/docs`.
 
-Most operations require an access token:
-
-```
-Authorization: Bearer <access_token>
-```
-
-A typical workflow is:
-
-1. Register or log in.
-2. Upload a scene file.
-3. Create a project with render settings.
-4. Monitor the project render status.
-5. Access the rendered result when it is ready.
-
-### Authentication
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/auth/register` | Register a new user |
-| POST | `/api/v1/auth/login` | Log in |
-| GET | `/api/v1/auth/refresh` | Refresh an access token |
-
-### Files
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/files/upload` | Upload a scene file |
-
-The uploaded file ID is used when creating a project.
-
-### Projects
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `api/v1/projects/create` | Create a project and render |
-| GET | `api/v1/projects/` | Get public projects |
-| GET | `/api/v1/projects/about-me` | Get your projects |
-| GET | `/api/v1/projects/user/{user_id}` | Get a user's public projects |
-| GET | `/api/v1/projects/{project_id}` | Get a project |
-| PATCH | `/api/v1/projects/{project_id}` | Update a project |
-| DELETE | `/api/v1/projects/{project_id}` | Delete a project |
-
-A render is configured when the project is created. The render settings include resolution, samples, denoiser, GPU usage, background and sun parameters.
-
-Example:
-
-```json
-{
-  "project": {
-    "name": "My Scene",
-    "description": "Test render",
-    "source_file_id": 1,
-    "visibility": "public"
-  },
-  "render": {
-    "width": 1920,
-    "height": 1080,
-    "samples": 128,
-    "denoiser": true,
-    "gpu": true,
-    "background": [0.1, 0.1, 0.1],
-    "sun": {
-      "direction": [0.0, 1.0, 0.0],
-      "color": [1.0, 0.8, 0.5],
-      "exponent": 10
-    }
-  }
-}
-```
-
-### Tags
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/tags/create` | Add a tag to a project |
-| GET | `/api/v1/tags/project/{project_id}` | Get project tags |
-| DELETE | `/api/v1/tags/{tag_id}` | Delete a tag |
-
-### Users
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/users/about-me` | Get your profile |
-| PUT | `/api/v1/users/about-me` | Update your profile |
-| DELETE | `/api/v1/users/about-me` | Delete your account |
-| GET | `/api/v1/users/{user_id}` | Get public user information |
-
----
+The API documentation includes available endpoints, request parameters, schemas and responses.
 
 ## Database Migrations
 
@@ -194,6 +120,8 @@ alembic downgrade -1
 ---
 
 ## Testing
+
+Run tests with:
 
 ```bash
 pytest
