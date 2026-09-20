@@ -4,9 +4,11 @@
 
 ## Overview
 
-The backend provides the HTTP API for PriZm. It handles users, projects, scene files, render settings and render jobs.
+The backend provides the HTTP API for Prism. It handles users, projects, scene files, render settings and render jobs.
 
 The API is available under the `/api/v1` prefix.
+
+---
 
 ## Key Features
 
@@ -21,15 +23,19 @@ The API is available under the `/api/v1` prefix.
 
 ## Tech Stack
 
-- Python 3.13+
-- FastAPI
-- PostgreSQL
-- SQLAlchemy 2
-- Alembic
-- S3 / MinIO
-- Apache Kafka
-- JWT + bcrypt
-- Pydantic 2
+| Component | Technology |
+|-----------|------------|
+| Language | Python 3.13+ |
+| API | FastAPI |
+| Database | PostgreSQL |
+| ORM | SQLAlchemy 2 |
+| Migrations | Alembic |
+| Object Storage | S3 / MinIO |
+| Message Broker | Apache Kafka |
+| Authentication | JWT + bcrypt |
+| Validation | Pydantic 2 |
+
+---
 
 ## Running the Backend
 
@@ -56,38 +62,16 @@ Configure the required environment variables before starting the application.
 
 Interactive API documentation is available through Swagger UI at `/docs`.
 
-An alternative ReDoc interface is available at `/redoc`.
-
 The API documentation includes available endpoints, request parameters, schemas and responses.
-
-## Typical Workflow
-
-1. Register or log in
-2. Upload a scene
-3. Create a rendering project
-4. Configure render settings
-5. Submit and monitor the render job
-6. Access the rendered result
 
 ## Database Migrations
 
-Apply migrations:
-
 ```bash
 alembic upgrade head
-```
-
-Create a new migration:
-
-```bash
 alembic revision --autogenerate -m "description"
-```
-
-Downgrade one migration:
-
-```bash
 alembic downgrade -1
 ```
+---
 
 ## Testing
 
