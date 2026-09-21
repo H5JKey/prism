@@ -1,8 +1,10 @@
 #pragma once
 #include <glad/gl.h>
 
+#include <atomic>
+#include <metrics.hpp>
+#include <optional>
 #include <random>
-#include <thread>
 
 #include "bvh-builder.hpp"
 #include "bvh.hpp"
@@ -59,6 +61,7 @@ class RenderEngine {
 
    public:
     RenderEngine();
+    void renderFrame(RenderTarget& target, const Scene& scene, int samples, std::optional<Metrics>& metrics);
     void renderFrame(RenderTarget& target, const Scene& scene, int samples);
     void destroy();
     std::atomic<bool> stopRequested{false};
@@ -66,9 +69,10 @@ class RenderEngine {
 
    private:
     void pathTracing(RenderTarget& target, const Scene::Camera& camera, const glm::vec3& backgroundColor,
-                     const Scene::Sun& sun, int samples);
-    void fillGbuffer(RenderTarget& target, const GPUData& gpuData, const Scene::Camera& camera);
-    void postProcess(RenderTarget& target) const;
+                     const Scene::Sun& sun, int samples, std::optional<Metrics>& metrics);
+    void fillGbuffer(RenderTarget& target, const GPUData& gpuData, const Scene::Camera& camera,
+                     std::optional<Metrics>& metrics);
+    void postProcess(RenderTarget& target, std::optional<Metrics>& metrics) const;
     void uploadGPUBuffers(const GPUData& gpuData, const BVH& bvh);
     GLuint compileShader(const std::string& source);
     void loadTextures(const std::vector<Scene::TextureData>& textures);

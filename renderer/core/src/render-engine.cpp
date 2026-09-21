@@ -178,7 +178,7 @@ GLuint RenderEngine::compileShader(const std::string& source) {
 }
 
 void RenderEngine::pathTracing(RenderTarget& target, const Scene::Camera& camera, const glm::vec3& backgroundColor,
-                               const Scene::Sun& sun, int samples) {
+                               const Scene::Sun& sun, int samples, std::optional<Metrics>& metrics) {
     logger.info("Path tracing started");
 
     glUseProgram(pathTracingProgram);
@@ -231,12 +231,14 @@ void RenderEngine::pathTracing(RenderTarget& target, const Scene::Camera& camera
     }
     auto end = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    if (metrics.has_value()) metrics.value().pathTracingTime = duration;
     logger.info(std::format("Path tracing finished in {}ms", duration.count()));
 
     glUseProgram(0);
 }
 
-void RenderEngine::fillGbuffer(RenderTarget& target, const GPUData& gpuData, const Scene::Camera& camera) {
+void RenderEngine::fillGbuffer(RenderTarget& target, const GPUData& gpuData, const Scene::Camera& camera,
+                               std::optional<Metrics>& metrics) {
     logger.debug("Filling gbuffer");
     glUseProgram(gbufferProgram);
     glBindImageTexture(0, target.getNormalMap(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
@@ -266,11 +268,12 @@ void RenderEngine::fillGbuffer(RenderTarget& target, const GPUData& gpuData, con
     glFinish();
     auto end = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    if (metrics.has_value()) metrics.value().gbufferFillingTime = duration;
     logger.debug(std::format("gbuffer filling finished in {}ms", duration.count()));
     glUseProgram(0);
 }
 
-void RenderEngine::postProcess(RenderTarget& target) const {
+void RenderEngine::postProcess(RenderTarget& target, std::optional<Metrics>& metrics) const {
     logger.info("Post processing started");
     glUseProgram(postProcessingProgram);
     glBindImageTexture(0, target.getDenoisedTexture(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
@@ -288,6 +291,7 @@ void RenderEngine::postProcess(RenderTarget& target) const {
     glFinish();
     auto end = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    if (metrics.has_value()) metrics.value().postProcessingTime = duration;
     logger.info(std::format("Post processing finished in {}ms", duration.count()));
     glUseProgram(0);
 }
@@ -427,7 +431,18 @@ void RenderEngine::loadTextures(const std::vector<Scene::TextureData>& textures)
 }
 
 void RenderEngine::renderFrame(RenderTarget& target, const Scene& scene, int samples) {
+    auto metrics = std::optional<Metrics>();
+    renderFrame(target, scene, samples, metrics);
+}
+
+void RenderEngine::renderFrame(RenderTarget& target, const Scene& scene, int samples, std::optional<Metrics>& metrics) {
     try {
+        if (metrics) {
+            metrics->samples = samples;
+            metrics->width = target.getWidth();
+            metrics->height = target.getHeight();
+        }
+        auto toatalRenderingTimeStart = std::chrono::steady_clock::now();
         logger.info(std::format("Rendering started ({}x{})", target.getWidth(), target.getHeight()));
         ContextGuard context(target);
         glClearTexImage(target.getRawTexture(), 0, GL_RGBA, GL_FLOAT, nullptr);
@@ -437,7 +452,12 @@ void RenderEngine::renderFrame(RenderTarget& target, const Scene& scene, int sam
         GPUData gpuData = convertSceneToGPUData(scene);
         BVH bvh;
         try {
+            auto start = std::chrono::steady_clock::now();
             bvh = std::move(bvhBuilder.build(gpuData.vertices, gpuData.vertexIndices));
+            auto end = std::chrono::steady_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+            if (metrics) metrics->BVHBuildingTime = duration;
+
         } catch (const std::exception& e) {
             logger.error(std::format("BVH building failed: {}", e.what()));
             throw;
@@ -449,7 +469,9 @@ void RenderEngine::renderFrame(RenderTarget& target, const Scene& scene, int sam
             return;
         }
         loadTextures(scene.getTexturesData());
+        if (metrics) metrics->texturesCount = scene.getTexturesData().size();
         uploadGPUBuffers(gpuData, bvh);
+        if (metrics) metrics->polygonsCount = gpuData.vertexIndices.size() / 3;
         if (stopRequested.load(std::memory_order_relaxed)) {
             stopRequested = false;
             logger.info("Rendering stopped");
@@ -457,13 +479,13 @@ void RenderEngine::renderFrame(RenderTarget& target, const Scene& scene, int sam
         }
         auto sun = scene.getSun();
         sun.direction = glm::normalize(sun.direction);
-        pathTracing(target, camera, scene.getBackgroundColor(), sun, samples);
+        pathTracing(target, camera, scene.getBackgroundColor(), sun, samples, metrics);
         if (stopRequested.load(std::memory_order_relaxed)) {
             stopRequested = false;
             logger.info("Rendering stopped");
             return;
         }
-        fillGbuffer(target, gpuData, camera);
+        fillGbuffer(target, gpuData, camera, metrics);
         if (stopRequested.load(std::memory_order_relaxed)) {
             stopRequested = false;
             logger.info("Rendering stopped");
@@ -474,14 +496,20 @@ void RenderEngine::renderFrame(RenderTarget& target, const Scene& scene, int sam
         denoiser.denoise(target);
         auto end = std::chrono::steady_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        if (metrics) metrics->denoisingTime = duration;
         logger.info(std::format("Denoising finished in {}ms", duration.count()));
         if (stopRequested.load(std::memory_order_relaxed)) {
             stopRequested = false;
             logger.info("Rendering stopped");
             return;
         }
-        postProcess(target);
+        postProcess(target, metrics);
+        auto toatalRenderingTimeEnd = std::chrono::steady_clock::now();
+        metrics->totalTime =
+            std::chrono::duration_cast<std::chrono::milliseconds>(toatalRenderingTimeEnd - toatalRenderingTimeStart);
+        if (metrics) metrics->renderingSuccess = true;
     } catch (const std::exception& e) {
+        if (metrics) metrics->renderingSuccess = false;
         logger.error(std::format("Rendering failed. Reason: {}", e.what()));
         throw;
     }

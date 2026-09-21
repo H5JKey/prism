@@ -6,6 +6,7 @@
 
 #include "context-guard.hpp"
 #include "logger.hpp"
+#include "metrics.hpp"
 #include "render-engine.hpp"
 #include "scene-loader.hpp"
 #include "scene.hpp"
@@ -30,6 +31,7 @@ void printHelp(std::string_view programName) {
     std::println(" -c, --camera        Set camera properties: origin, direction, fov");
     std::println(" -B, --background    Set background color (default: vec3(0,0,0))");
     std::println(" -S, --sun           Set sun properties: color, direction, exponent");
+    std::println(" -M, --metrics       Shows rendering statistics");
 }
 
 void printUsage(std::string_view programName) {
@@ -74,6 +76,7 @@ int main(int argc, char* argv[]) {
     bool cameraSet = false;
     bool sunSet = false;
     Scene::Sun sun;
+    std::optional<Metrics> metrics;
 
     for (int i = 5; i < argc; i++) {
         std::string arg = argv[i];
@@ -84,6 +87,8 @@ int main(int argc, char* argv[]) {
             logger.showDebug = true;
         else if (arg == "-d" || arg == "--debug")
             debugImages = true;
+        else if (arg == "-M" || arg == "--metrics")
+            metrics = Metrics();
         else if (arg == "-o" || arg == "--output") {
             if (i + 1 == argc) {
                 std::println(std::cerr, "Error: {} requires an argument", arg);
@@ -174,7 +179,7 @@ int main(int argc, char* argv[]) {
         if (cameraSet) scene.setCamera(userCamera);
         if (sunSet) scene.setSun(sun);
         std::shared_ptr<RenderTarget> egl = TargetManager::getInstance().createEGLTarget(width, height);
-        engine.renderFrame(*egl, scene, samples);
+        engine.renderFrame(*egl, scene, samples, metrics);
 
         auto* eglTarget = dynamic_cast<EglTarget*>(egl.get());
         if (eglTarget) {
@@ -201,6 +206,57 @@ int main(int argc, char* argv[]) {
                     std::format("Writing into {}", (absoluteDirectoryPath / (outputFilename + "-heat.png")).string()));
                 utils::writeToPng(egl->getBufferData<float>(egl->getHeatMap()), egl->getWidth(), egl->getHeight(), 4,
                                   absoluteDirectoryPath / (outputFilename + "-heat.png"));
+            }
+        }
+        if (metrics) {
+            const Metrics& m = *metrics;
+
+            auto line = [](std::string_view label, auto&& value, std::string_view unit = "") {
+                std::println("  {:<18}{:>10} {}", label, value, unit);
+            };
+            auto timeLine = [&](std::string_view label, const std::optional<std::chrono::milliseconds>& t) {
+                if (!t) return;
+                std::string pct;
+                if (m.totalTime && m.totalTime->count() > 0) {
+                    const double p = 100.0 * t->count() / m.totalTime->count();
+                    pct = std::format("  ({:>5.1f}%)", p);
+                }
+                std::println("  {:<18}{:>8} ms{}", label, t->count(), pct);
+            };
+
+            std::println("\nRender statistics");
+            std::println("─────────────────────────────────────────");
+
+            bool anyImage = m.width || m.height || m.samples;
+            if (anyImage) {
+                std::println("[ Image ]");
+                if (m.width && m.height) std::println("  {:<18}{:>5} x {:<5}", "Resolution", *m.width, *m.height);
+                if (m.samples) line("Samples", *m.samples);
+            }
+
+            if (m.polygonsCount || m.texturesCount) {
+                if (anyImage) std::println();
+                std::println("[ Scene ]");
+                if (m.polygonsCount) line("Polygons", *m.polygonsCount);
+                if (m.texturesCount) line("Textures", *m.texturesCount);
+            }
+
+            bool anyTime = m.BVHBuildingTime || m.pathTracingTime || m.gbufferFillingTime || m.postProcessingTime ||
+                           m.denoisingTime || m.upscalingTime;
+            if (anyTime) {
+                if (anyImage || m.polygonsCount || m.texturesCount) std::println();
+                std::println("[ Timings ]");
+                timeLine("BVH building", m.BVHBuildingTime);
+                timeLine("Path tracing", m.pathTracingTime);
+                timeLine("G-buffer", m.gbufferFillingTime);
+                timeLine("Denoising", m.denoisingTime);
+                timeLine("Post-processing", m.postProcessingTime);
+                timeLine("Upscaling", m.upscalingTime);
+            }
+
+            if (m.totalTime) {
+                std::println("─────────────────────────────────────────");
+                std::println("  {:<18}{:>8} ms", "Total", m.totalTime->count());
             }
         }
         logger.info("Renderer application stopped successfully");
