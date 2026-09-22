@@ -49,6 +49,5 @@ if(BUILD_WORKER)
 endif() 
 
 if(BUILD_TESTS)
-    message(STATUS "Building tests")
     add_subdirectory(tests)
 endif()

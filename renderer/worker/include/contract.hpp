@@ -1,4 +1,5 @@
 #pragma once
+#include "metrics.hpp"
 
 struct TaskHeader {
     int width;
@@ -15,4 +16,5 @@ struct TaskHeader {
 
 struct ResultHeader {
     unsigned long long resultDataSize;
+    Metrics metrics;
 };

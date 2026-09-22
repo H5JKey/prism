@@ -22,6 +22,7 @@ void Config::apply(env::dotenv dotenv) {
             rendererPreviewMaxSize_ = dotenv["RENDERER_PREVIEW_MAX_SIZE"];
         if (dotenv.hasVariable("RENDERER_PREVIEW_UPSCALE_FACTOR"))
             rendererPreviewUpscaleFactor_ = dotenv["RENDERER_PREVIEW_UPSCALE_FACTOR"];
+        if (dotenv.hasVariable("PROMETHEUS_HOST")) prometheusHost_ = dotenv["PROMETHEUS_HOST"];
     } catch (const env::Value::ValueError& e) {
         throw std::runtime_error(std::format("Invalid value format in .env file. Error: {}.", e.what()));
     }
@@ -45,6 +46,7 @@ void Config::fromEnvironment() {
         if (char* ptr = std::getenv("RENDERER_PREVIEW")) rendererPreview_ = env::Value(ptr);
         if (char* ptr = std::getenv("RENDERER_PREVIEW_MAX_SIZE")) rendererPreviewMaxSize_ = env::Value(ptr);
         if (char* ptr = std::getenv("RENDERER_PREVIEW_UPSCALE_FACTOR")) rendererPreviewUpscaleFactor_ = env::Value(ptr);
+        if (char* ptr = std::getenv("PROMETHEUS_HOST")) prometheusHost_ = env::Value(ptr);
     } catch (const env::Value::ValueError& e) {
         throw std::runtime_error(std::format("Invalid environment variable value format. Error: {}.", e.what()));
     }
@@ -117,6 +119,13 @@ std::string Config::s3SecretKey() const {
         throw std::runtime_error("S3_SECRET_KEY not configured");
     }
     return s3SecretKey_.value();
+}
+
+std::string Config::prometheusHost() const {
+    if (!prometheusHost_.has_value()) {
+        throw std::runtime_error("PROMETHEUS_HOST not configured");
+    }
+    return prometheusHost_.value();
 }
 
 Logger::Level Config::logLevel() const { return logLevel_; }

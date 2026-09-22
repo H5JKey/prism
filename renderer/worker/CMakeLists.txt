@@ -35,6 +35,7 @@ add_executable(service
     src/s3-client.cpp
     src/dotenv.cpp
     src/config.cpp
+    src/prometheus.cpp
 )
 
 target_include_directories(service PRIVATE

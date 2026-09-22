@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
     bool cameraSet = false;
     bool sunSet = false;
     Scene::Sun sun;
-    std::optional<Metrics> metrics;
+    bool showMetrics = false;
 
     for (int i = 5; i < argc; i++) {
         std::string arg = argv[i];
@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
         else if (arg == "-d" || arg == "--debug")
             debugImages = true;
         else if (arg == "-M" || arg == "--metrics")
-            metrics = Metrics();
+            showMetrics = true;
         else if (arg == "-o" || arg == "--output") {
             if (i + 1 == argc) {
                 std::println(std::cerr, "Error: {} requires an argument", arg);
@@ -179,6 +179,7 @@ int main(int argc, char* argv[]) {
         if (cameraSet) scene.setCamera(userCamera);
         if (sunSet) scene.setSun(sun);
         std::shared_ptr<RenderTarget> egl = TargetManager::getInstance().createEGLTarget(width, height);
+        Metrics metrics;
         engine.renderFrame(*egl, scene, samples, metrics);
 
         auto* eglTarget = dynamic_cast<EglTarget*>(egl.get());
@@ -208,17 +209,15 @@ int main(int argc, char* argv[]) {
                                   absoluteDirectoryPath / (outputFilename + "-heat.png"));
             }
         }
-        if (metrics) {
-            const Metrics& m = *metrics;
-
+        if (showMetrics) {
             auto line = [](std::string_view label, auto&& value, std::string_view unit = "") {
                 std::println("  {:<18}{:>10} {}", label, value, unit);
             };
             auto timeLine = [&](std::string_view label, const std::optional<std::chrono::milliseconds>& t) {
                 if (!t) return;
                 std::string pct;
-                if (m.totalTime && m.totalTime->count() > 0) {
-                    const double p = 100.0 * t->count() / m.totalTime->count();
+                if (metrics.totalTime && metrics.totalTime->count() > 0) {
+                    const double p = 100.0 * t->count() / metrics.totalTime->count();
                     pct = std::format("  ({:>5.1f}%)", p);
                 }
                 std::println("  {:<18}{:>8} ms{}", label, t->count(), pct);
@@ -227,36 +226,37 @@ int main(int argc, char* argv[]) {
             std::println("\nRender statistics");
             std::println("─────────────────────────────────────────");
 
-            bool anyImage = m.width || m.height || m.samples;
+            bool anyImage = metrics.width || metrics.height || metrics.samples;
             if (anyImage) {
                 std::println("[ Image ]");
-                if (m.width && m.height) std::println("  {:<18}{:>5} x {:<5}", "Resolution", *m.width, *m.height);
-                if (m.samples) line("Samples", *m.samples);
+                if (metrics.width && metrics.height)
+                    std::println("  {:<18}{:>5} x {:<5}", "Resolution", *metrics.width, *metrics.height);
+                if (metrics.samples) line("Samples", *metrics.samples);
             }
 
-            if (m.polygonsCount || m.texturesCount) {
+            if (metrics.polygonsCount || metrics.texturesCount) {
                 if (anyImage) std::println();
                 std::println("[ Scene ]");
-                if (m.polygonsCount) line("Polygons", *m.polygonsCount);
-                if (m.texturesCount) line("Textures", *m.texturesCount);
+                if (metrics.polygonsCount) line("Polygons", *metrics.polygonsCount);
+                if (metrics.texturesCount) line("Textures", *metrics.texturesCount);
             }
 
-            bool anyTime = m.BVHBuildingTime || m.pathTracingTime || m.gbufferFillingTime || m.postProcessingTime ||
-                           m.denoisingTime || m.upscalingTime;
+            bool anyTime = metrics.BVHBuildingTime || metrics.pathTracingTime || metrics.gbufferFillingTime ||
+                           metrics.postProcessingTime || metrics.denoisingTime || metrics.upscalingTime;
             if (anyTime) {
-                if (anyImage || m.polygonsCount || m.texturesCount) std::println();
+                if (anyImage || metrics.polygonsCount || metrics.texturesCount) std::println();
                 std::println("[ Timings ]");
-                timeLine("BVH building", m.BVHBuildingTime);
-                timeLine("Path tracing", m.pathTracingTime);
-                timeLine("G-buffer", m.gbufferFillingTime);
-                timeLine("Denoising", m.denoisingTime);
-                timeLine("Post-processing", m.postProcessingTime);
-                timeLine("Upscaling", m.upscalingTime);
+                timeLine("BVH building", metrics.BVHBuildingTime);
+                timeLine("Path tracing", metrics.pathTracingTime);
+                timeLine("G-buffer", metrics.gbufferFillingTime);
+                timeLine("Denoising", metrics.denoisingTime);
+                timeLine("Post-processing", metrics.postProcessingTime);
+                timeLine("Upscaling", metrics.upscalingTime);
             }
 
-            if (m.totalTime) {
+            if (metrics.totalTime) {
                 std::println("─────────────────────────────────────────");
-                std::println("  {:<18}{:>8} ms", "Total", m.totalTime->count());
+                std::println("  {:<18}{:>8} ms", "Total", metrics.totalTime->count());
             }
         }
         logger.info("Renderer application stopped successfully");
