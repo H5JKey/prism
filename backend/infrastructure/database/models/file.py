@@ -8,7 +8,7 @@ from core.constants import (
     FILE_SIZE_MAX_VALUE_BYTES,
     FILE_SIZE_MIN_VALUE_BYTES,
 )
-from sqlalchemy import CheckConstraint, String
+from sqlalchemy import CheckConstraint, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from infrastructure.database.core import Base
@@ -50,5 +50,10 @@ class File(Base):
             AND size <= {FILE_SIZE_MAX_VALUE_BYTES}
             """,
             name="value_size",
+        ),
+        UniqueConstraint(
+            "bucket",
+            "key",
+            name="uq_files_bucket_key",
         ),
     )
