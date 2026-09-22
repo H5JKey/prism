@@ -12,6 +12,7 @@ class Config {
     std::optional<std::string> kafkaTopicOutput_;
     std::optional<std::string> kafkaTopicDLQ_;
     std::optional<std::string> kafkaTopicCommands_;
+    std::optional<std::string> prometheusHost_;
     int maxRetries_ = 5;  // default
     std::optional<std::string> s3Host_;
     std::optional<std::string> s3AccessKey_;
@@ -29,6 +30,7 @@ class Config {
     void fromEnvironment();
 
     std::string kafkaHost() const;
+    std::string prometheusHost() const;
     std::string kafkaTasksGroupID() const;
     std::string kafkaCommandsGroupId() const;
     std::string kafkaTopicTasks() const;

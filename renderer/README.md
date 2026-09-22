@@ -145,6 +145,7 @@ docker run --rm renderer renderer_cli <width> <height> <samples> <input_scene> [
 | `-c, --camera` | `vec3 vec3 float` | Set camera: `position lookAt fov` |
 | `-B, --background` | `vec3` | Set background color (default: vec3(0,0,0)) |
 | `-S, --sun` | `vec3 vec3 float` | Set sun: `color direction exponent` |
+| `-M, --metrics` | `-` | Shows rendering statistics |;
 
 ---
 
@@ -331,7 +332,9 @@ docker run --rm --entrypoint /bin/sh renderer -c "cd build/tests && ctest --outp
 ```bash
 cd renderer
 mkdir build && cd build
-cmake .. -DBUILD_MODE=CORE
+cmake .. -DBUILD_MODE=CORE -DBUILD_TESTS=ON
 cmake --build .
+cd tests
+ctest --output-on-failure
 ./test
 ```

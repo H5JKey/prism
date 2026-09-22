@@ -1,7 +1,9 @@
 FetchContent_Declare(
-    prometheus 
-    GIT_REPOSITORY https://github.com/jupp0r/prometheus-cpp
-    GIT_TAG v1.3.0
+  prometheus-cpp
+  GIT_REPOSITORY https://github.com/jupp0r/prometheus-cpp.git
+  GIT_TAG v1.0.2
 )
 
-FetchContent_MakeAvailable(prometheus)
+set(BUILD_TESTS OFF)
+set(ENABLE_TESTING OFF)
+FetchContent_MakeAvailable(prometheus-cpp)

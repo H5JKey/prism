@@ -162,7 +162,16 @@ int main() try {
             sun.exponent = task.sun.exponent;
             scene.setSun(sun);
 
-            engine->renderFrame(*egl, scene, task.samples);
+            Metrics metrics;
+            try {
+                engine->renderFrame(*egl, scene, task.samples, metrics);
+            } catch (const std::exception& e) {
+                ResultHeader resultHeader;
+                resultHeader.resultDataSize = 0;
+                resultHeader.metrics = metrics;
+                write(STDOUT_FILENO, &resultHeader, sizeof(resultHeader));
+                logger.debug(std::format("Write {} bytes in pipe for resultHeader", sizeof(resultHeader)));
+            }
             if (!stopRequested) {
                 ContextGuard guard(*egl);
                 auto data = egl->getBufferData<uint8_t>(egl->getOutputTexture());
@@ -176,6 +185,7 @@ int main() try {
                 }
                 std::vector<uint8_t> result = utils::writeToPng(data, task.width, task.height, 4);
                 ResultHeader resultHeader;
+                resultHeader.metrics = metrics;
                 resultHeader.resultDataSize = result.size();
                 write(STDOUT_FILENO, &resultHeader, sizeof(resultHeader));
                 logger.debug(std::format("Written {} bytes in pipe for resultHeader", sizeof(resultHeader)));
@@ -185,6 +195,7 @@ int main() try {
                 stopRequested = false;
                 ResultHeader resultHeader;
                 resultHeader.resultDataSize = 0;
+                resultHeader.metrics = metrics;
                 write(STDOUT_FILENO, &resultHeader, sizeof(resultHeader));
                 logger.debug(std::format("Write {} bytes in pipe for resultHeader", sizeof(resultHeader)));
             }

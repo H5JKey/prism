@@ -18,6 +18,7 @@
 #include "kafka-consumer.hpp"
 #include "kafka-producer.hpp"
 #include "logger.hpp"
+#include "prometheus.hpp"
 #include "s3-client.hpp"
 
 using json = nlohmann::json;
@@ -167,6 +168,8 @@ int main() try {
     KafkaConsumer commandConsumer(config.kafkaHost(), config.kafkaCommandsGroupId(), config.kafkaTopicCommands());
     KafkaProducer producer(config.kafkaHost());
 
+    Prometheus prometheus(config.prometheusHost());
+
     logger.info(std::format("Listening for messages..."));
     while (running) {
         int status;
@@ -232,6 +235,7 @@ int main() try {
             write(STDOUT_FILENO, glbData.data(), glbData.size());
             logger.debug(std::format("Written {} bytes in pipe for scene", glbData.size()));
 
+            prometheus.onRenderStarted();
             while (running) {
                 int status;
                 pid_t result = waitpid(renderer_pid, &status, WNOHANG);
@@ -314,6 +318,7 @@ int main() try {
                                 std::format("Reading from pipe truncates image (read only {}/{} bytes)", total_read,
                                             result.size()));
                         }
+                        prometheus.onRenderFinished(resultHeader.metrics);
                     }
                     taskConsumer.commit();
                     logger.info(std::format("Current message processing finished successfully. Listening..."));

@@ -61,7 +61,7 @@ class RenderEngine {
 
    public:
     RenderEngine();
-    void renderFrame(RenderTarget& target, const Scene& scene, int samples, std::optional<Metrics>& metrics);
+    void renderFrame(RenderTarget& target, const Scene& scene, int samples, Metrics& metrics);
     void renderFrame(RenderTarget& target, const Scene& scene, int samples);
     void destroy();
     std::atomic<bool> stopRequested{false};
@@ -69,10 +69,9 @@ class RenderEngine {
 
    private:
     void pathTracing(RenderTarget& target, const Scene::Camera& camera, const glm::vec3& backgroundColor,
-                     const Scene::Sun& sun, int samples, std::optional<Metrics>& metrics);
-    void fillGbuffer(RenderTarget& target, const GPUData& gpuData, const Scene::Camera& camera,
-                     std::optional<Metrics>& metrics);
-    void postProcess(RenderTarget& target, std::optional<Metrics>& metrics) const;
+                     const Scene::Sun& sun, int samples, Metrics& metrics);
+    void fillGbuffer(RenderTarget& target, const GPUData& gpuData, const Scene::Camera& camera, Metrics& metrics);
+    void postProcess(RenderTarget& target, Metrics& metrics) const;
     void uploadGPUBuffers(const GPUData& gpuData, const BVH& bvh);
     GLuint compileShader(const std::string& source);
     void loadTextures(const std::vector<Scene::TextureData>& textures);
