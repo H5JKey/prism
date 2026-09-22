@@ -19,6 +19,7 @@ class SQLState(StrEnum):
     FK_VIOLATION = "23503"
     NOT_NULL_VIOLATION = "23502"
     STRING_TOO_LONG = "22001"
+    WRONG_ENUM_TYPE = "22P02"
 
 
 def run_migrations(database_container) -> None:
