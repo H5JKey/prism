@@ -1,6 +1,5 @@
 import pytest
-from asyncpg import StringDataRightTruncationError
-from sqlalchemy.exc import DataError, IntegrityError, DBAPIError
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.constants import (
@@ -85,3 +84,36 @@ class TestFile:
         params = {field: value}
         file = await create_file(session, **params)
         assert file.id is not None
+
+    async def test_file_path_unique_constraint_failed(
+        self,
+        session: AsyncSession,
+    ) -> None:
+        test_bucket = "test_bucket"
+        test_key = "test_key"
+        await create_file(session, bucket=test_bucket, key=test_key)
+        with pytest.raises(DBAPIError) as exc_info:
+            await create_file(session, bucket=test_bucket, key=test_key)
+
+        assert_sqlstate_code(exc_info, SQLState.UNIQUE_VIOLATION)
+
+    @pytest.mark.parametrize(
+        "bucket1, bucket2, key1, key2",
+        [
+            ["bucket", "bucket", "key1", "key2"],
+            ["bucket1", "bucket2", "key", "key"],
+            ["bucket1", "bucket2", "key1", "key2"],
+        ],
+    )
+    async def test_file_path_unique_constraint_passed(
+        self,
+        session: AsyncSession,
+        bucket1: str,
+        bucket2: str,
+        key1: str,
+        key2: str,
+    ) -> None:
+        file1 = await create_file(session, bucket=bucket1, key=key1)
+        file2 = await create_file(session, bucket=bucket2, key=key2)
+        assert file1.id is not None
+        assert file2.id is not None
