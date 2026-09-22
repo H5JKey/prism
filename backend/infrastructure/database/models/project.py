@@ -21,7 +21,7 @@ class Project(Base):
     __tablename__ = "projects"
 
     name: Mapped[str] = mapped_column(String(PROJECT_NAME_MAX_LENGTH))
-    description: Mapped[str | None] = mapped_column(
+    description: Mapped[str] = mapped_column(
         String(PROJECT_DESCRIPTION_MAX_LENGTH),
     )
     create_date: Mapped[datetime] = mapped_column(

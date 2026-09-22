@@ -15,7 +15,9 @@ class Tag(Base):
     __tablename__ = "tags"
 
     name: Mapped[str] = mapped_column(String(TAG_MAX_LENGTH))
-    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"))
+    project_id: Mapped[int] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE")
+    )
 
     project: Mapped["Project"] = relationship(
         "Project",
