@@ -1,32 +1,12 @@
-from datetime import datetime
-from typing import Any
-
 import pytest
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.constants import TOPIC_MAX_LENGTH
-from infrastructure.database.models import Outbox
 from tests.helpers import assert_sqlstate_code, SQLState
-
-
-async def create_outbox(session: AsyncSession, **kwargs: Any) -> Outbox:
-    outbox_data = {
-        "topic": "test_topic",
-        "message": {
-            "field1": "value1",
-            "field2": "value2",
-        },
-        "event_date": datetime(year=2025, month=1, day=1),
-        "status": "pending",
-    }
-    outbox = Outbox(**outbox_data)
-    for field, value in kwargs.items():
-        setattr(outbox, field, value)
-
-    session.add(outbox)
-    await session.flush()
-    return outbox
+from tests.test_infrastructure.test_database.test_models.model_factories import (
+    create_outbox,
+)
 
 
 class TestOutbox:

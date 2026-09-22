@@ -1,5 +1,3 @@
-from typing import Any
-
 import pytest
 from sqlalchemy import delete
 from sqlalchemy.exc import DBAPIError
@@ -15,25 +13,10 @@ from core.constants import (
 )
 from infrastructure.database.models import Render, File
 from tests.helpers import assert_sqlstate_code, SQLState
-from tests.test_infrastructure.test_database.test_models.test_file import create_file
-
-
-async def create_render(session: AsyncSession, **kwargs: Any) -> Render:
-    render_data = {
-        "width": 1000,
-        "height": 1000,
-        "samples": 100,
-        "denoiser": True,
-        "gpu": True,
-        "file_id": None,
-    }
-    render = Render(**render_data)
-    for field, value in kwargs.items():
-        setattr(render, field, value)
-
-    session.add(render)
-    await session.flush()
-    return render
+from tests.test_infrastructure.test_database.test_models.model_factories import (
+    create_file,
+    create_render,
+)
 
 
 class TestRender:
