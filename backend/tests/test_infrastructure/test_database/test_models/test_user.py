@@ -1,6 +1,3 @@
-from datetime import datetime
-from typing import Any
-
 import pytest
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,27 +13,10 @@ from core.constants import (
     USER_EMAIL_MAX_LENGTH,
     USER_ENCRYPTED_PASSWORD_MAX_LENGTH,
 )
-from infrastructure.database.models import User
 from tests.helpers import assert_sqlstate_code, SQLState
-
-
-async def create_user(session: AsyncSession, **kwargs: Any) -> User:
-    user_data = {
-        "surname": "surname",
-        "name": "name",
-        "username": "username",
-        "email": "email@mail.com",
-        "encrypted_password": "encrypted_password",
-        "registration_date": datetime(year=2025, month=12, day=31),
-    }
-
-    user = User(**user_data)
-    for field, value in kwargs.items():
-        setattr(user, field, value)
-
-    session.add(user)
-    await session.flush()
-    return user
+from tests.test_infrastructure.test_database.test_models.model_factories import (
+    create_user,
+)
 
 
 class TestUser:

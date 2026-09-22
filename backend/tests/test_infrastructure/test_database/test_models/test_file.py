@@ -1,5 +1,3 @@
-from typing import Any
-
 import pytest
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,24 +10,10 @@ from core.constants import (
     FILE_SIZE_MIN_VALUE_BYTES,
     FILE_SIZE_MAX_VALUE_BYTES,
 )
-from infrastructure.database.models import File
 from tests.helpers import SQLState, assert_sqlstate_code
-
-
-async def create_file(session: AsyncSession, **kwargs: Any) -> File:
-    file_data = {
-        "name": "file_name",
-        "size": 1000,
-        "bucket": "test_bucket",
-        "key": "test_key",
-    }
-    file = File(**file_data)
-    for field, value in kwargs.items():
-        setattr(file, field, value)
-
-    session.add(file)
-    await session.flush()
-    return file
+from tests.test_infrastructure.test_database.test_models.model_factories import (
+    create_file,
+)
 
 
 class TestFile:
