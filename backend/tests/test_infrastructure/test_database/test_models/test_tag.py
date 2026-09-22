@@ -59,10 +59,11 @@ class TestTag:
 
         assert_sqlstate_code(exc_info, SQLState.NOT_NULL_VIOLATION)
 
-    async def test_tag_project_id_delete(self, session: AsyncSession) -> None:
+    async def test_tag_delete_project(self, session: AsyncSession) -> None:
         tag = await create_tag(session)
         stmt = delete(Project).where(Project.id == tag.project_id)
         await session.execute(stmt)
-        session.expunge_all()
+        session.expunge(tag)
+
         deleted_tag = await session.get(Tag, tag.id)
         assert deleted_tag is None
