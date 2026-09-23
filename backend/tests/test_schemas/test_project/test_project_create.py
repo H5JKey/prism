@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
-
 from schemas.project import ProjectCreate, ProjectWithRenderCreate
+
 from tests.test_schemas.helpers import assert_validation_error
 
 
@@ -11,7 +11,9 @@ class TestProjectCreate:
         ["public", "private"],
     )
     def test_project_create_valid(
-        self, project_create_data: dict, visibility: str
+        self,
+        project_create_data: dict,
+        visibility: str,
     ) -> None:
         project_create_data["visibility"] = visibility
         project_create = ProjectCreate(**project_create_data)
@@ -44,10 +46,11 @@ class TestProjectCreate:
 
 class TestProjectWithRenderCreate:
     def test_project_with_render_create_valid(
-        self, project_with_render_create_data: dict
+        self,
+        project_with_render_create_data: dict,
     ) -> None:
         project_with_render_create = ProjectWithRenderCreate(
-            **project_with_render_create_data
+            **project_with_render_create_data,
         )
         assert (
             project_with_render_create.model_dump() == project_with_render_create_data

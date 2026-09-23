@@ -1,14 +1,14 @@
 from typing import Any
 
+from infrastructure.database.models import Project, Tag
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from infrastructure.database.models import Tag, Project, Render
-from tests.test_infrastructure.test_database.test_models.factories.custom_factories import (
+from tests.test_infrastructure.test_database.test_models.factories import (
     create_file,
-    create_render,
-    create_user,
     create_project,
+    create_render,
     create_tag,
+    create_user,
 )
 
 

@@ -1,24 +1,24 @@
 import pytest
+from core.constants import (
+    USER_EMAIL_MAX_LENGTH,
+    USER_EMAIL_MIN_LENGTH,
+    USER_ENCRYPTED_PASSWORD_MAX_LENGTH,
+    USER_NAME_MAX_LENGTH,
+    USER_NAME_MIN_LENGTH,
+    USER_SURNAME_MAX_LENGTH,
+    USER_SURNAME_MIN_LENGTH,
+    USER_USERNAME_MAX_LENGTH,
+    USER_USERNAME_MIN_LENGTH,
+)
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.constants import (
-    USER_SURNAME_MIN_LENGTH,
-    USER_SURNAME_MAX_LENGTH,
-    USER_NAME_MIN_LENGTH,
-    USER_NAME_MAX_LENGTH,
-    USER_USERNAME_MAX_LENGTH,
-    USER_USERNAME_MIN_LENGTH,
-    USER_EMAIL_MIN_LENGTH,
-    USER_EMAIL_MAX_LENGTH,
-    USER_ENCRYPTED_PASSWORD_MAX_LENGTH,
-)
-from tests.helpers import assert_sqlstate_code, SQLState
-from tests.test_infrastructure.test_database.test_models.factories.custom_factories import (
-    create_user,
-    create_project,
+from tests.helpers import SQLState, assert_sqlstate_code
+from tests.test_infrastructure.test_database.test_models.factories import (
     create_file,
+    create_project,
     create_render,
+    create_user,
 )
 
 
@@ -116,7 +116,8 @@ class TestUser:
         assert user.registration_date is not None
 
     async def test_user_projects_relationship_valid(
-        self, session: AsyncSession
+        self,
+        session: AsyncSession,
     ) -> None:
         user = await create_user(session)
         file1 = await create_file(session, bucket="bucket1", key="key1")

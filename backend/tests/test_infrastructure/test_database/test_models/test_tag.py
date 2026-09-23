@@ -1,17 +1,15 @@
 import pytest
+from core.constants import TAG_MAX_LENGTH, TAG_MIN_LENGTH
+from infrastructure.database.models import Project, Tag
 from sqlalchemy import delete
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.constants import TAG_MIN_LENGTH, TAG_MAX_LENGTH
-from infrastructure.database.models import Project, Tag
 from tests.helpers import SQLState, assert_sqlstate_code
-from tests.test_infrastructure.test_database.test_models.factories.custom_factories import (
-    create_tag,
-)
-from tests.test_infrastructure.test_database.test_models.factories.default_factories import (
-    create_default_tag,
+from tests.test_infrastructure.test_database.test_models.factories import (
     create_default_project,
+    create_default_tag,
+    create_tag,
 )
 
 

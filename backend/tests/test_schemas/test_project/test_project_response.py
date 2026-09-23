@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
+from schemas.project import ProjectFullResponse, ProjectResponse, ProjectResponseList
 
-from schemas.project import ProjectResponse, ProjectFullResponse, ProjectResponseList
 from tests.test_schemas.helpers import assert_validation_error
 
 
@@ -9,8 +9,8 @@ class TestProjectResponse:
     @pytest.mark.parametrize(
         "field, value",
         [
-            ["visibility", "pending"],
-            ["visibility", "completed"],
+            ["visibility", "public"],
+            ["visibility", "private"],
             ["status", "rendering"],
             ["status", "completed"],
         ],
@@ -21,6 +21,7 @@ class TestProjectResponse:
         field: str,
         value: str,
     ) -> None:
+        project_response_data[field] = value
         project_response = ProjectResponse(**project_response_data)
         assert project_response.model_dump() == project_response_data
 
@@ -88,7 +89,8 @@ class TestProjectResponse:
 
 class TestProjectFullResponse:
     def test_project_full_response_valid(
-        self, project_full_response_data: dict
+        self,
+        project_full_response_data: dict,
     ) -> None:
         project_full_response = ProjectFullResponse(**project_full_response_data)
         assert project_full_response.model_dump() == project_full_response_data

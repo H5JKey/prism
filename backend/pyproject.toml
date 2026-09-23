@@ -67,7 +67,7 @@ plugins = [
 required-version = ">=0.15.11"
 
 src = [
-    "app",
+    "backend",
 ]
 
 # Exclude a variety of commonly ignored directories.
@@ -100,7 +100,7 @@ exclude = [
     "venv",
     ".venv",
     "migrations",
-    "tests",
+#    "tests",
 ]
 
 # Same as Black.
@@ -177,6 +177,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "core/config/*" = ["S105"]
 "core/constants.py" = ["S105"]
+"tests/**/*.py" = ["DTZ001", "DTZ005", "DTZ007"]
 
 
 # Allow fix for all enabled rules (when `--fix`) is provided.

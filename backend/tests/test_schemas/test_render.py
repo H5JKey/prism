@@ -1,23 +1,23 @@
 import pytest
-from pydantic import ValidationError
-
 from core.constants import (
-    RENDER_WIDTH_MIN_VALUE,
-    RENDER_WIDTH_MAX_VALUE,
-    RENDER_HEIGHT_MIN_VALUE,
     RENDER_HEIGHT_MAX_VALUE,
-    RENDER_SAMPLES_MIN_VALUE,
+    RENDER_HEIGHT_MIN_VALUE,
     RENDER_SAMPLES_MAX_VALUE,
+    RENDER_SAMPLES_MIN_VALUE,
+    RENDER_WIDTH_MAX_VALUE,
+    RENDER_WIDTH_MIN_VALUE,
 )
+from pydantic import ValidationError
 from schemas.render import (
-    SunInfo,
     RenderBase,
     RenderCreatePayload,
-    RenderResponse,
-    RenderWithFileResponse,
     RenderFullResponse,
+    RenderResponse,
     RenderWithFileFullResponse,
+    RenderWithFileResponse,
+    SunInfo,
 )
+
 from tests.test_schemas.helpers import assert_validation_error
 
 
@@ -176,7 +176,7 @@ class TestRenderWithFileResponse:
         render_with_file_response_data: dict,
     ) -> None:
         render_with_file_response = RenderWithFileResponse(
-            **render_with_file_response_data
+            **render_with_file_response_data,
         )
         assert render_with_file_response.model_dump() == render_with_file_response_data
 
@@ -186,7 +186,7 @@ class TestRenderWithFileResponse:
     ) -> None:
         render_with_file_response_data.pop("file")
         render_with_file_response = RenderWithFileResponse(
-            **render_with_file_response_data
+            **render_with_file_response_data,
         )
         assert render_with_file_response.file is None
 
@@ -214,7 +214,7 @@ class TestRenderWithFileFullResponse:
         render_with_file_full_response_data: dict,
     ) -> None:
         render_with_file_full_response = RenderWithFileFullResponse(
-            **render_with_file_full_response_data
+            **render_with_file_full_response_data,
         )
         assert (
             render_with_file_full_response.model_dump()
@@ -227,6 +227,6 @@ class TestRenderWithFileFullResponse:
     ) -> None:
         render_with_file_full_response_data.pop("file")
         render_with_file_full_response = RenderWithFileFullResponse(
-            **render_with_file_full_response_data
+            **render_with_file_full_response_data,
         )
         assert render_with_file_full_response.file is None

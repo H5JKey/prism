@@ -1,25 +1,23 @@
 import pytest
+from core.constants import (
+    PROJECT_DESCRIPTION_MAX_LENGTH,
+    PROJECT_DESCRIPTION_MIN_LENGTH,
+    PROJECT_NAME_MAX_LENGTH,
+    PROJECT_NAME_MIN_LENGTH,
+)
+from infrastructure.database.models import File, Project, Render, User
 from sqlalchemy import delete
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.constants import (
-    PROJECT_NAME_MIN_LENGTH,
-    PROJECT_NAME_MAX_LENGTH,
-    PROJECT_DESCRIPTION_MAX_LENGTH,
-    PROJECT_DESCRIPTION_MIN_LENGTH,
-)
-from infrastructure.database.models import User, Project, File, Render
 from tests.helpers import SQLState, assert_sqlstate_code
-from tests.test_infrastructure.test_database.test_models.factories.custom_factories import (
-    create_project,
-    create_user,
+from tests.test_infrastructure.test_database.test_models.factories import (
+    create_default_project,
     create_file,
+    create_project,
     create_render,
     create_tag,
-)
-from tests.test_infrastructure.test_database.test_models.factories.default_factories import (
-    create_default_project,
+    create_user,
 )
 
 
@@ -85,7 +83,9 @@ class TestProject:
         ],
     )
     async def test_project_status_valid(
-        self, session: AsyncSession, status: str
+        self,
+        session: AsyncSession,
+        status: str,
     ) -> None:
         project = await create_default_project(session, status=status)
         assert project.id is not None
@@ -154,7 +154,9 @@ class TestProject:
         ],
     )
     async def test_project_without_required_foreign_key(
-        self, session: AsyncSession, foreign_key: str
+        self,
+        session: AsyncSession,
+        foreign_key: str,
     ) -> None:
         params = {foreign_key: None}
         with pytest.raises(DBAPIError) as exc_info:

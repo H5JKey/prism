@@ -1,11 +1,11 @@
-from typing import AsyncGenerator, Generator
+from collections.abc import AsyncGenerator, Generator
 
 import pytest
 from sqlalchemy.ext.asyncio import (
-    create_async_engine,
     AsyncEngine,
-    async_sessionmaker,
     AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
 )
 from testcontainers.community.postgres import PostgresContainer
 
@@ -13,7 +13,7 @@ from tests.helpers import run_migrations
 
 
 @pytest.fixture(scope="session")
-def database_container() -> Generator[PostgresContainer, None]:
+def database_container() -> Generator[PostgresContainer]:
     with PostgresContainer(
         image="postgres:17-bookworm",
         driver="asyncpg",
@@ -25,7 +25,7 @@ def database_container() -> Generator[PostgresContainer, None]:
 @pytest.fixture(scope="session")
 async def engine(
     database_container: PostgresContainer,
-) -> AsyncGenerator[AsyncEngine, None]:
+) -> AsyncGenerator[AsyncEngine]:
     database_url = database_container.get_connection_url()
     engine = create_async_engine(database_url)
     yield engine
@@ -35,7 +35,7 @@ async def engine(
 @pytest.fixture(scope="session")
 async def session_factory(
     engine: AsyncEngine,
-) -> AsyncGenerator[async_sessionmaker, None]:
+) -> AsyncGenerator[async_sessionmaker]:
     session_maker = async_sessionmaker(
         bind=engine,
         expire_on_commit=False,
@@ -46,6 +46,6 @@ async def session_factory(
 @pytest.fixture(scope="function")
 async def session(
     session_factory: async_sessionmaker,
-) -> AsyncGenerator[AsyncSession, None]:
+) -> AsyncGenerator[AsyncSession]:
     async with session_factory() as session:
         yield session
