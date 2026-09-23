@@ -13,9 +13,12 @@ from core.constants import (
     USER_EMAIL_MAX_LENGTH,
     USER_ENCRYPTED_PASSWORD_MAX_LENGTH,
 )
+from infrastructure.database.models import Project
 from tests.helpers import assert_sqlstate_code, SQLState
 from tests.test_infrastructure.test_database.test_models.model_factories import (
     create_user,
+    create_project,
+    create_file,
 )
 
 
@@ -111,3 +114,17 @@ class TestUser:
         user = await create_user(session, registration_date=None)
         assert user.id is not None
         assert user.registration_date is not None
+
+    async def test_user_projects_relationship_valid(
+        self, session: AsyncSession
+    ) -> None:
+        user = await create_user(session)
+        file1 = await create_file(session, bucket="bucket1", key="key1")
+        file2 = await create_file(session, bucket="bucket2", key="key2")
+        project1 = await create_project(session, user=user, source_file=file1)
+        project2 = await create_project(session, user=user, source_file=file2)
+        created_projects = [project1, project2]
+        created_projects.sort(key=lambda project: project.id)
+        await session.refresh(user, ["projects"])
+        user_projects = sorted(user.projects, key=lambda project: project.id)
+        assert user_projects == created_projects
