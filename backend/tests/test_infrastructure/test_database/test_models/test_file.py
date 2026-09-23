@@ -13,6 +13,9 @@ from core.constants import (
 from tests.helpers import SQLState, assert_sqlstate_code
 from tests.test_infrastructure.test_database.test_models.model_factories import (
     create_file,
+    create_render,
+    create_user,
+    create_project,
 )
 
 
@@ -103,3 +106,34 @@ class TestFile:
         file2 = await create_file(session, bucket=bucket2, key=key2)
         assert file1.id is not None
         assert file2.id is not None
+
+    async def test_file_empty_render_relationship_valid(
+        self,
+        session: AsyncSession,
+    ) -> None:
+        file = await create_file(session)
+        await session.refresh(file, ["render"])
+        assert file.render is None
+
+    async def test_file_render_relationship_valid(self, session: AsyncSession) -> None:
+        file = await create_file(session)
+        render = await create_render(session, file_id=file.id)
+        await session.refresh(file, ["render"])
+        assert file.render is render
+
+    async def test_file_empty_project_relationship_valid(
+        self,
+        session: AsyncSession,
+    ) -> None:
+        file = await create_file(session)
+        await session.refresh(file, ["project_as_source_file"])
+        assert file.project_as_source_file is None
+
+    async def test_file_project_relationship_valid(
+        self,
+        session: AsyncSession,
+    ) -> None:
+        file = await create_file(session)
+        project = await create_project(session, source_file=file)
+        await session.refresh(file, ["project_as_source_file"])
+        assert file.project_as_source_file is project

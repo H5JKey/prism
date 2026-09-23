@@ -78,14 +78,27 @@ async def create_user(session: AsyncSession, **kwargs: Any) -> User:
     return user
 
 
-async def create_project(session: AsyncSession, **kwargs: Any) -> Project:
-    user = await create_user(session)
-    source_file = await create_file(
-        session,
-        bucket="source_file_bucket",
-        key="source_file_key",
-    )
-    render = await create_render(session)
+async def create_project(
+    session: AsyncSession,
+    user: User | dict | None = None,
+    source_file: File | dict | None = None,
+    render: Render | dict | None = None,
+    **kwargs: Any,
+) -> Project:
+    if user is None:
+        user = {}
+    if source_file is None:
+        source_file = {}
+    if render is None:
+        render = {}
+
+    if isinstance(user, dict):
+        user = await create_user(session, **user)
+    if isinstance(source_file, dict):
+        source_file = await create_file(session, **source_file)
+    if isinstance(render, dict):
+        render = await create_render(session, **render)
+
     project_data = {
         "name": "project_name",
         "description": "description",
