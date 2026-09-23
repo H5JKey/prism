@@ -41,14 +41,19 @@ async def create_outbox(session: AsyncSession, **kwargs: Any) -> Outbox:
     return outbox
 
 
-async def create_render(session: AsyncSession, **kwargs: Any) -> Render:
+async def create_render(
+    session: AsyncSession,
+    file: File | None = None,
+    **kwargs: Any,
+) -> Render:
+    file_id = file.id if file else None
     render_data = {
         "width": 1000,
         "height": 1000,
         "samples": 100,
         "denoiser": True,
         "gpu": True,
-        "file_id": None,
+        "file_id": file_id,
     }
     render = Render(**render_data)
     for field, value in kwargs.items():
@@ -80,25 +85,11 @@ async def create_user(session: AsyncSession, **kwargs: Any) -> User:
 
 async def create_project(
     session: AsyncSession,
-    user: User | dict | None = None,
-    source_file: File | dict | None = None,
-    render: Render | dict | None = None,
+    user: User,
+    source_file: File,
+    render: Render,
     **kwargs: Any,
 ) -> Project:
-    if user is None:
-        user = {}
-    if source_file is None:
-        source_file = {}
-    if render is None:
-        render = {}
-
-    if isinstance(user, dict):
-        user = await create_user(session, **user)
-    if isinstance(source_file, dict):
-        source_file = await create_file(session, **source_file)
-    if isinstance(render, dict):
-        render = await create_render(session, **render)
-
     project_data = {
         "name": "project_name",
         "description": "description",
@@ -121,16 +112,11 @@ async def create_project(
 
 async def create_tag(
     session: AsyncSession,
-    project: Project | dict | None = None,
+    project: Project | None = None,
     **kwargs: Any,
 ) -> Tag:
-    if project is None:
-        project = {}
-    if isinstance(project, dict):
-        project = await create_project(session, **project)
-
     tag_data = {
-        "name": "name",
+        "name": "tag_name",
         "project_id": project.id,
     }
 

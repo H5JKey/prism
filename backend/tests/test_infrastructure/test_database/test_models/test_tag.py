@@ -6,15 +6,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.constants import TAG_MIN_LENGTH, TAG_MAX_LENGTH
 from infrastructure.database.models import Project, Tag
 from tests.helpers import SQLState, assert_sqlstate_code
-from tests.test_infrastructure.test_database.test_models.model_factories import (
+from tests.test_infrastructure.test_database.test_models.factories.custom_factories import (
     create_tag,
-    create_project,
+)
+from tests.test_infrastructure.test_database.test_models.factories.default_factories import (
+    create_default_tag,
+    create_default_project,
 )
 
 
 class TestTag:
     async def test_tag_valid(self, session: AsyncSession) -> None:
-        tag = await create_tag(session)
+        tag = await create_default_tag(session)
         assert tag.id is not None
 
     @pytest.mark.parametrize(
@@ -33,7 +36,7 @@ class TestTag:
     ) -> None:
         params = {field: value}
         with pytest.raises(DBAPIError) as exc_info:
-            await create_tag(session, **params)
+            await create_default_tag(session, **params)
 
         assert_sqlstate_code(exc_info, expected_sqlstate)
 
@@ -51,17 +54,17 @@ class TestTag:
         value: str,
     ) -> None:
         params = {field: value}
-        tag = await create_tag(session, **params)
+        tag = await create_default_tag(session, **params)
         assert tag.id is not None
 
     async def test_tag_without_project_id(self, session: AsyncSession) -> None:
         with pytest.raises(DBAPIError) as exc_info:
-            await create_tag(session, project_id=None)
+            await create_default_tag(session, project_id=None)
 
         assert_sqlstate_code(exc_info, SQLState.NOT_NULL_VIOLATION)
 
     async def test_tag_delete_project(self, session: AsyncSession) -> None:
-        tag = await create_tag(session)
+        tag = await create_default_tag(session)
         stmt = delete(Project).where(Project.id == tag.project_id)
         await session.execute(stmt)
         session.expunge(tag)
@@ -70,7 +73,7 @@ class TestTag:
         assert deleted_tag is None
 
     async def test_tag_project_relationship_valid(self, session: AsyncSession) -> None:
-        project = await create_project(session)
+        project = await create_default_project(session)
         tag = await create_tag(session, project=project)
         await session.refresh(tag, ["project"])
         assert tag.project is project

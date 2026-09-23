@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.constants import TOPIC_MAX_LENGTH
 from tests.helpers import assert_sqlstate_code, SQLState
-from tests.test_infrastructure.test_database.test_models.model_factories import (
+from tests.test_infrastructure.test_database.test_models.factories.custom_factories import (
     create_outbox,
 )
 

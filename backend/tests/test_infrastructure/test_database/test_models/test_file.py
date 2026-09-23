@@ -11,7 +11,7 @@ from core.constants import (
     FILE_SIZE_MAX_VALUE_BYTES,
 )
 from tests.helpers import SQLState, assert_sqlstate_code
-from tests.test_infrastructure.test_database.test_models.model_factories import (
+from tests.test_infrastructure.test_database.test_models.factories.custom_factories import (
     create_file,
     create_render,
     create_user,
@@ -134,6 +134,13 @@ class TestFile:
         session: AsyncSession,
     ) -> None:
         file = await create_file(session)
-        project = await create_project(session, source_file=file)
+        user = await create_user(session)
+        render = await create_render(session)
+        project = await create_project(
+            session,
+            user=user,
+            source_file=file,
+            render=render,
+        )
         await session.refresh(file, ["project_as_source_file"])
         assert file.project_as_source_file is project
