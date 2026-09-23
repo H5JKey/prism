@@ -51,7 +51,7 @@ def create_project_event_data(file_location_data: dict, render_data: dict) -> di
 
 @pytest.fixture
 def render_generated_event_data(
-    file_location_data,
+    file_location_data: dict,
 ) -> dict:
     return {
         "project_id": 1,
@@ -147,7 +147,8 @@ def render_full_response_data(render_response_data: dict) -> dict:
 
 @pytest.fixture
 def render_with_file_response_data(
-    render_response_data: dict, file_response_data: dict
+    render_response_data: dict,
+    file_response_data: dict,
 ) -> dict:
     return {
         **render_response_data,

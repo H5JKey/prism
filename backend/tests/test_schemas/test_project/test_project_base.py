@@ -1,13 +1,13 @@
 import pytest
-from pydantic import ValidationError
-
 from core.constants import (
-    PROJECT_NAME_MIN_LENGTH,
-    PROJECT_NAME_MAX_LENGTH,
     PROJECT_DESCRIPTION_MAX_LENGTH,
     PROJECT_DESCRIPTION_MIN_LENGTH,
+    PROJECT_NAME_MAX_LENGTH,
+    PROJECT_NAME_MIN_LENGTH,
 )
+from pydantic import ValidationError
 from schemas.project import ProjectBase
+
 from tests.test_schemas.helpers import assert_validation_error
 
 

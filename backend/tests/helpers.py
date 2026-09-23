@@ -3,13 +3,14 @@ import subprocess
 from enum import StrEnum
 
 from _pytest._code import ExceptionInfo
+from testcontainers.community.postgres import PostgresContainer
 
 
 def assert_sqlstate_code(
     exc_info: ExceptionInfo,
     expected_sqlstate: str,
 ) -> None:
-    sqlstate = getattr(exc_info.value.orig, "sqlstate")
+    sqlstate = exc_info.value.orig.sqlstate
     assert sqlstate == expected_sqlstate
 
 
@@ -22,7 +23,7 @@ class SQLState(StrEnum):
     WRONG_ENUM_TYPE = "22P02"
 
 
-def run_migrations(database_container) -> None:
+def run_migrations(database_container: PostgresContainer) -> None:
     host = database_container.get_container_host_ip()
     port = database_container.get_exposed_port(5432)
 
@@ -34,7 +35,7 @@ def run_migrations(database_container) -> None:
     environment["DATABASE__DB_NAME"] = database_container.dbname
 
     subprocess.run(
-        ["alembic", "upgrade", "head"],
+        ["alembic", "upgrade", "head"],  # noqa: S607
         env=environment,
         check=True,
     )

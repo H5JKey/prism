@@ -1,15 +1,15 @@
 import pytest
-from pydantic import ValidationError
-
 from core.constants import (
-    FILE_NAME_MIN_LENGTH,
-    FILE_NAME_MAX_LENGTH,
-    FILE_SIZE_MIN_VALUE_BYTES,
-    FILE_SIZE_MAX_VALUE_BYTES,
     FILE_BUCKET_MAX_LENGTH,
     FILE_KEY_MAX_LENGTH,
+    FILE_NAME_MAX_LENGTH,
+    FILE_NAME_MIN_LENGTH,
+    FILE_SIZE_MAX_VALUE_BYTES,
+    FILE_SIZE_MIN_VALUE_BYTES,
 )
-from schemas.file import FileBase, FileResponse, FileCreate, FileLocationCreate
+from pydantic import ValidationError
+from schemas.file import FileBase, FileCreate, FileLocationCreate, FileResponse
+
 from tests.test_schemas.helpers import assert_validation_error
 
 

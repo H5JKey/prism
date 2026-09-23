@@ -1,8 +1,8 @@
 import pytest
+from core.constants import TAG_MAX_LENGTH, TAG_MIN_LENGTH
 from pydantic import ValidationError
-
-from core.constants import TAG_MIN_LENGTH, TAG_MAX_LENGTH
 from schemas.tag import TagBase, TagResponse, TagResponseList
+
 from tests.test_schemas.helpers import assert_validation_error
 
 
@@ -33,7 +33,7 @@ def tag_response_list_data() -> dict:
                 "project_id": 2,
                 "name": "tag_name2",
             },
-        ]
+        ],
     }
 
 

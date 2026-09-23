@@ -1,26 +1,23 @@
 import pytest
+from core.constants import (
+    RENDER_HEIGHT_MAX_VALUE,
+    RENDER_HEIGHT_MIN_VALUE,
+    RENDER_SAMPLES_MAX_VALUE,
+    RENDER_SAMPLES_MIN_VALUE,
+    RENDER_WIDTH_MAX_VALUE,
+    RENDER_WIDTH_MIN_VALUE,
+)
+from infrastructure.database.models import File, Render
 from sqlalchemy import delete
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.constants import (
-    RENDER_WIDTH_MIN_VALUE,
-    RENDER_WIDTH_MAX_VALUE,
-    RENDER_HEIGHT_MIN_VALUE,
-    RENDER_HEIGHT_MAX_VALUE,
-    RENDER_SAMPLES_MIN_VALUE,
-    RENDER_SAMPLES_MAX_VALUE,
-)
-from infrastructure.database.models import Render, File
-from tests.helpers import assert_sqlstate_code, SQLState
-from tests.test_infrastructure.test_database.test_models.factories.custom_factories import (
+from tests.helpers import SQLState, assert_sqlstate_code
+from tests.test_infrastructure.test_database.test_models.factories import (
     create_file,
-    create_render,
     create_project,
+    create_render,
     create_user,
-)
-from tests.test_infrastructure.test_database.test_models.factories.default_factories import (
-    create_default_project,
 )
 
 

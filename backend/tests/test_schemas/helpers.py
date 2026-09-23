@@ -1,5 +1,5 @@
-from pytest import ExceptionInfo
 from pydantic import ValidationError
+from pytest import ExceptionInfo
 
 
 def assert_validation_error(

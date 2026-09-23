@@ -1,15 +1,15 @@
 import pytest
-from pydantic import ValidationError
-
 from core.constants import TOPIC_MAX_LENGTH
+from pydantic import ValidationError
 from schemas.event import (
-    EventCreate,
-    DLQMessage,
-    RenderGeneratedEvent,
     CreateProjectEvent,
+    DLQMessage,
+    EventCreate,
+    RenderGeneratedEvent,
 )
 from schemas.file import FileLocationCreate
 from schemas.render import RenderCreatePayload
+
 from tests.test_schemas.helpers import assert_validation_error
 
 
@@ -62,7 +62,7 @@ class TestEventCreate:
 class TestCreateProjectEvent:
     def test_create_project_event_valid(self, create_project_event_data: dict) -> None:
         create_project_event = CreateProjectEvent.model_validate(
-            create_project_event_data
+            create_project_event_data,
         )
         assert (
             create_project_event.project_id == create_project_event_data["project_id"]
@@ -108,7 +108,7 @@ class TestRenderGeneratedEvent:
         render_generated_event_data: dict[str, int | dict[str, str]],
     ) -> None:
         render_generated_event = RenderGeneratedEvent.model_validate(
-            render_generated_event_data
+            render_generated_event_data,
         )
         assert (
             render_generated_event.project_id

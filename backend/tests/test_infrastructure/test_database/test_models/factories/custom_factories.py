@@ -1,9 +1,8 @@
 from datetime import datetime
 from typing import Any
 
+from infrastructure.database.models import File, Outbox, Project, Render, Tag, User
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from infrastructure.database.models import File, Outbox, Render, User, Project, Tag
 
 
 async def create_file(session: AsyncSession, **kwargs: Any) -> File:

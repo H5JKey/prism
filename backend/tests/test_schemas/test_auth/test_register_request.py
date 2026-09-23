@@ -1,18 +1,18 @@
 import pytest
-from pydantic import ValidationError
-
 from core.constants import (
-    USER_USERNAME_MIN_LENGTH,
-    USER_USERNAME_MAX_LENGTH,
-    USER_PASSWORD_MIN_LENGTH,
-    USER_PASSWORD_MAX_LENGTH,
-    USER_SURNAME_MIN_LENGTH,
-    USER_SURNAME_MAX_LENGTH,
-    USER_NAME_MIN_LENGTH,
-    USER_NAME_MAX_LENGTH,
     USER_EMAIL_MAX_LENGTH,
+    USER_NAME_MAX_LENGTH,
+    USER_NAME_MIN_LENGTH,
+    USER_PASSWORD_MAX_LENGTH,
+    USER_PASSWORD_MIN_LENGTH,
+    USER_SURNAME_MAX_LENGTH,
+    USER_SURNAME_MIN_LENGTH,
+    USER_USERNAME_MAX_LENGTH,
+    USER_USERNAME_MIN_LENGTH,
 )
+from pydantic import ValidationError
 from schemas.auth import RegisterRequest
+
 from tests.test_schemas.helpers import assert_validation_error
 
 

@@ -1,25 +1,25 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
-from pydantic import ValidationError
-
 from core.constants import (
-    USER_SURNAME_MIN_LENGTH,
-    USER_SURNAME_MAX_LENGTH,
-    USER_NAME_MAX_LENGTH,
-    USER_NAME_MIN_LENGTH,
-    USER_USERNAME_MIN_LENGTH,
-    USER_USERNAME_MAX_LENGTH,
     USER_EMAIL_MAX_LENGTH,
     USER_ENCRYPTED_PASSWORD_MAX_LENGTH,
+    USER_NAME_MAX_LENGTH,
+    USER_NAME_MIN_LENGTH,
+    USER_SURNAME_MAX_LENGTH,
+    USER_SURNAME_MIN_LENGTH,
+    USER_USERNAME_MAX_LENGTH,
+    USER_USERNAME_MIN_LENGTH,
 )
+from pydantic import ValidationError
 from schemas.user import (
     UserBase,
     UserCreate,
-    UserUpdate,
-    UserResponse,
     UserFullResponse,
+    UserResponse,
+    UserUpdate,
 )
+
 from tests.test_schemas.helpers import assert_validation_error
 
 
@@ -54,7 +54,7 @@ def user_response_data(user_base_data: dict) -> dict:
     return {
         **user_base_data,
         "id": 1,
-        "registration_date": datetime.now(),
+        "registration_date": datetime(2025, 6, 30, tzinfo=UTC),
     }
 
 
@@ -116,6 +116,7 @@ class TestUserBase:
         field: str,
         value: str,
     ) -> None:
+        user_base_data[field] = value
         user_base = UserBase(**user_base_data)
         assert user_base.model_dump() == user_base_data
 
