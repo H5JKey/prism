@@ -119,8 +119,16 @@ async def create_project(
     return project
 
 
-async def create_tag(session: AsyncSession, **kwargs: Any) -> Tag:
-    project = await create_project(session)
+async def create_tag(
+    session: AsyncSession,
+    project: Project | dict | None = None,
+    **kwargs: Any,
+) -> Tag:
+    if project is None:
+        project = {}
+    if isinstance(project, dict):
+        project = await create_project(session, **project)
+
     tag_data = {
         "name": "name",
         "project_id": project.id,

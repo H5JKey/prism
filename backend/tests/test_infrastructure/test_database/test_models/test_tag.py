@@ -8,6 +8,7 @@ from infrastructure.database.models import Project, Tag
 from tests.helpers import SQLState, assert_sqlstate_code
 from tests.test_infrastructure.test_database.test_models.model_factories import (
     create_tag,
+    create_project,
 )
 
 
@@ -67,3 +68,9 @@ class TestTag:
 
         deleted_tag = await session.get(Tag, tag.id)
         assert deleted_tag is None
+
+    async def test_tag_project_relationship_valid(self, session: AsyncSession) -> None:
+        project = await create_project(session)
+        tag = await create_tag(session, project=project)
+        await session.refresh(tag, ["project"])
+        assert tag.project is project
