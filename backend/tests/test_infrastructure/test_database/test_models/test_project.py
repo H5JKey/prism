@@ -13,6 +13,10 @@ from infrastructure.database.models import User, Project, File, Render
 from tests.helpers import SQLState, assert_sqlstate_code
 from tests.test_infrastructure.test_database.test_models.factories.custom_factories import (
     create_project,
+    create_user,
+    create_file,
+    create_render,
+    create_tag,
 )
 from tests.test_infrastructure.test_database.test_models.factories.default_factories import (
     create_default_project,
@@ -184,3 +188,63 @@ class TestProject:
 
         deleted_project = await session.get(Project, project.id)
         assert deleted_project is None
+
+    async def test_project_user_relationship_valid(
+        self,
+        session: AsyncSession,
+    ) -> None:
+        user = await create_user(session)
+        source_file = await create_file(session)
+        render = await create_render(session)
+        project = await create_project(
+            session,
+            user=user,
+            source_file=source_file,
+            render=render,
+        )
+        await session.refresh(project, ["user"])
+        assert project.user is user
+
+    async def test_project_source_file_relationship_valid(
+        self,
+        session: AsyncSession,
+    ) -> None:
+        user = await create_user(session)
+        source_file = await create_file(session)
+        render = await create_render(session)
+        project = await create_project(
+            session,
+            user=user,
+            source_file=source_file,
+            render=render,
+        )
+        await session.refresh(project, ["source_file"])
+        assert project.source_file is source_file
+
+    async def test_project_render_relationship_valid(
+        self,
+        session: AsyncSession,
+    ) -> None:
+        user = await create_user(session)
+        source_file = await create_file(session)
+        render = await create_render(session)
+        project = await create_project(
+            session,
+            user=user,
+            source_file=source_file,
+            render=render,
+        )
+        await session.refresh(project, ["render"])
+        assert project.render is render
+
+    async def test_project_tags_relationship_valid(
+        self,
+        session: AsyncSession,
+    ) -> None:
+        project = await create_default_project(session)
+        tag1 = await create_tag(session, project=project)
+        tag2 = await create_tag(session, project=project)
+        await session.refresh(project, ["tags"])
+        created_tags = sorted([tag1, tag2], key=lambda tag: tag.id)
+        project_tags = sorted(project.tags, key=lambda tag: tag.id)
+        assert created_tags == project_tags
