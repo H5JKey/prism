@@ -25,12 +25,12 @@ class File(Base):
     bucket: Mapped[str] = mapped_column(String(FILE_BUCKET_MAX_LENGTH))
     key: Mapped[str] = mapped_column(String(FILE_KEY_MAX_LENGTH))
 
-    project_as_source_file: Mapped["Project"] = relationship(
+    project_as_source_file: Mapped["Project | None"] = relationship(
         "Project",
         foreign_keys="Project.source_file_id",
         back_populates="source_file",
     )
-    render: Mapped["Render"] = relationship(
+    render: Mapped["Render | None"] = relationship(
         "Render",
         foreign_keys="Render.file_id",
         back_populates="file",
