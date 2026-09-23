@@ -13,9 +13,14 @@ from core.constants import (
 )
 from infrastructure.database.models import Render, File
 from tests.helpers import assert_sqlstate_code, SQLState
-from tests.test_infrastructure.test_database.test_models.model_factories import (
+from tests.test_infrastructure.test_database.test_models.factories.custom_factories import (
     create_file,
     create_render,
+    create_project,
+    create_user,
+)
+from tests.test_infrastructure.test_database.test_models.factories.default_factories import (
+    create_default_project,
 )
 
 
@@ -90,3 +95,36 @@ class TestRender:
         session.expunge_all()
         deleted_render = await session.get(Render, render.id)
         assert deleted_render is None
+
+    async def test_render_empty_file_relationship_valid(
+        self,
+        session: AsyncSession,
+    ) -> None:
+        render = await create_render(session)
+        await session.refresh(render, ["file"])
+        assert render.file is None
+
+    async def test_render_file_relationship_valid(
+        self,
+        session: AsyncSession,
+    ) -> None:
+        file = await create_file(session)
+        render = await create_render(session, file=file)
+        await session.refresh(render, ["file"])
+        assert render.file is file
+
+    async def test_render_project_relationship_valid(
+        self,
+        session: AsyncSession,
+    ) -> None:
+        user = await create_user(session)
+        file = await create_file(session)
+        render = await create_render(session)
+        project = await create_project(
+            session,
+            user=user,
+            source_file=file,
+            render=render,
+        )
+        await session.refresh(render, ["project"])
+        assert render.project is project

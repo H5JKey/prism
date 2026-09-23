@@ -29,7 +29,7 @@ class Render(Base):
     file_id: Mapped[int | None] = mapped_column(
         ForeignKey("files.id", ondelete="CASCADE"),
     )
-    file: Mapped["File"] = relationship(
+    file: Mapped["File | None"] = relationship(
         "File",
         foreign_keys=[file_id],
         back_populates="render",

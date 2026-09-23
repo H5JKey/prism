@@ -11,14 +11,17 @@ from core.constants import (
 )
 from infrastructure.database.models import User, Project, File, Render
 from tests.helpers import SQLState, assert_sqlstate_code
-from tests.test_infrastructure.test_database.test_models.model_factories import (
+from tests.test_infrastructure.test_database.test_models.factories.custom_factories import (
     create_project,
+)
+from tests.test_infrastructure.test_database.test_models.factories.default_factories import (
+    create_default_project,
 )
 
 
 class TestProject:
     async def test_project_valid(self, session: AsyncSession) -> None:
-        project = await create_project(session)
+        project = await create_default_project(session)
         assert project.id is not None
 
     @pytest.mark.parametrize(
@@ -42,7 +45,7 @@ class TestProject:
     ) -> None:
         params = {field: value}
         with pytest.raises(DBAPIError) as exc_info:
-            await create_project(session, **params)
+            await create_default_project(session, **params)
 
         assert_sqlstate_code(exc_info, expected_sqlstate)
 
@@ -62,11 +65,11 @@ class TestProject:
         value: str,
     ) -> None:
         params = {field: value}
-        project = await create_project(session, **params)
+        project = await create_default_project(session, **params)
         assert project.id is not None
 
     async def test_project_default_create_date(self, session: AsyncSession) -> None:
-        project = await create_project(session, create_date=None)
+        project = await create_default_project(session, create_date=None)
         assert project.id is not None
         assert project.create_date is not None
 
@@ -80,7 +83,7 @@ class TestProject:
     async def test_project_status_valid(
         self, session: AsyncSession, status: str
     ) -> None:
-        project = await create_project(session, status=status)
+        project = await create_default_project(session, status=status)
         assert project.id is not None
         assert project.status == status
 
@@ -99,7 +102,7 @@ class TestProject:
         status: str,
     ) -> None:
         with pytest.raises(DBAPIError) as exc_info:
-            await create_project(session, status=status)
+            await create_default_project(session, status=status)
 
         assert_sqlstate_code(exc_info, SQLState.WRONG_ENUM_TYPE)
 
@@ -115,7 +118,7 @@ class TestProject:
         session: AsyncSession,
         visibility: str,
     ) -> None:
-        project = await create_project(session, visibility=visibility)
+        project = await create_default_project(session, visibility=visibility)
         assert project.id is not None
         assert project.visibility == visibility
 
@@ -134,7 +137,7 @@ class TestProject:
         visibility: str,
     ) -> None:
         with pytest.raises(DBAPIError) as exc_info:
-            await create_project(session, visibility=visibility)
+            await create_default_project(session, visibility=visibility)
 
         assert_sqlstate_code(exc_info, SQLState.WRONG_ENUM_TYPE)
 
@@ -151,12 +154,12 @@ class TestProject:
     ) -> None:
         params = {foreign_key: None}
         with pytest.raises(DBAPIError) as exc_info:
-            await create_project(session, **params)
+            await create_default_project(session, **params)
 
         assert_sqlstate_code(exc_info, SQLState.NOT_NULL_VIOLATION)
 
     async def test_project_delete_user(self, session: AsyncSession) -> None:
-        project = await create_project(session)
+        project = await create_default_project(session)
         stmt = delete(User).where(User.id == project.user_id)
         await session.execute(stmt)
         session.expunge(project)
@@ -165,7 +168,7 @@ class TestProject:
         assert deleted_project is None
 
     async def test_project_delete_source_file(self, session: AsyncSession) -> None:
-        project = await create_project(session)
+        project = await create_default_project(session)
         stmt = delete(File).where(File.id == project.source_file_id)
         await session.execute(stmt)
         session.expunge(project)
@@ -174,7 +177,7 @@ class TestProject:
         assert deleted_project is None
 
     async def test_project_delete_render(self, session: AsyncSession) -> None:
-        project = await create_project(session)
+        project = await create_default_project(session)
         stmt = delete(Render).where(Render.id == project.render_id)
         await session.execute(stmt)
         session.expunge(project)
