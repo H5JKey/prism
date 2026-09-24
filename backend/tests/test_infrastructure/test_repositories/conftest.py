@@ -1,5 +1,9 @@
 import pytest
-from infrastructure.database.repositories import FileRepository, OutboxRepository
+from infrastructure.database.repositories import (
+    FileRepository,
+    OutboxRepository,
+    UserRepository,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -11,3 +15,8 @@ def file_repository(session: AsyncSession) -> FileRepository:
 @pytest.fixture(scope="function")
 def outbox_repository(session: AsyncSession) -> OutboxRepository:
     return OutboxRepository(session)
+
+
+@pytest.fixture(scope="function")
+def user_repository(session: AsyncSession) -> UserRepository:
+    return UserRepository(session)
