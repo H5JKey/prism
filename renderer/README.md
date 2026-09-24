@@ -232,6 +232,7 @@ The worker can be configured using environment variables or a `.env` file in the
 | `S3_ACCESS_KEY`	| S3 access key | Yes | `-` |
 | `S3_SECRET_KEY`	| S3 secret key	| Yes | `-` |
 | `PROMETHEUS_HOST` |	Prometheus address | Yes | `-` |
+| `PROMETHEUS_ENABLED` | Enable or disable Prometheus metrics | No | false |
 | `LOG_LEVEL`	| Log level (DEBUG, INFO, WARNING, ERROR)	|	No | `INFO` |
 | `LOG_DEBUG`	| Enable debug logging (true/false)	| No | `true` |
 | `RENDERER_PREVIEW` | Render image in lower resolution and only 5 samples (true/false) | No | `false` |
