@@ -168,7 +168,8 @@ int main() try {
     KafkaConsumer commandConsumer(config.kafkaHost(), config.kafkaCommandsGroupId(), config.kafkaTopicCommands());
     KafkaProducer producer(config.kafkaHost());
 
-    Prometheus prometheus(config.prometheusHost());
+    std::optional<Prometheus> prometheus;
+    if (config.prometheusEnabled()) prometheus = Prometheus(config.prometheusHost());
 
     logger.info(std::format("Listening for messages..."));
     while (running) {
@@ -235,7 +236,7 @@ int main() try {
             write(STDOUT_FILENO, glbData.data(), glbData.size());
             logger.debug(std::format("Written {} bytes in pipe for scene", glbData.size()));
 
-            prometheus.onRenderStarted();
+            if (config.prometheusEnabled()) prometheus->onRenderStarted();
             while (running) {
                 int status;
                 pid_t result = waitpid(renderer_pid, &status, WNOHANG);
@@ -318,7 +319,7 @@ int main() try {
                                 std::format("Reading from pipe truncates image (read only {}/{} bytes)", total_read,
                                             result.size()));
                         }
-                        prometheus.onRenderFinished(resultHeader.metrics);
+                        if (config.prometheusEnabled()) prometheus->onRenderFinished(resultHeader.metrics);
                     }
                     taskConsumer.commit();
                     logger.info(std::format("Current message processing finished successfully. Listening..."));

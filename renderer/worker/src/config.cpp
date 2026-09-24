@@ -23,6 +23,7 @@ void Config::apply(env::dotenv dotenv) {
         if (dotenv.hasVariable("RENDERER_PREVIEW_UPSCALE_FACTOR"))
             rendererPreviewUpscaleFactor_ = dotenv["RENDERER_PREVIEW_UPSCALE_FACTOR"];
         if (dotenv.hasVariable("PROMETHEUS_HOST")) prometheusHost_ = dotenv["PROMETHEUS_HOST"];
+        if (dotenv.hasVariable("PROMETHEUS_ENABLED")) prometheusEnabled_ = dotenv["PROMETHEUS_ENABLED"];
     } catch (const env::Value::ValueError& e) {
         throw std::runtime_error(std::format("Invalid value format in .env file. Error: {}.", e.what()));
     }
@@ -47,6 +48,7 @@ void Config::fromEnvironment() {
         if (char* ptr = std::getenv("RENDERER_PREVIEW_MAX_SIZE")) rendererPreviewMaxSize_ = env::Value(ptr);
         if (char* ptr = std::getenv("RENDERER_PREVIEW_UPSCALE_FACTOR")) rendererPreviewUpscaleFactor_ = env::Value(ptr);
         if (char* ptr = std::getenv("PROMETHEUS_HOST")) prometheusHost_ = env::Value(ptr);
+        if (char* ptr = std::getenv("PROMETHEUS_ENABLED")) prometheusEnabled_ = env::Value(ptr);
     } catch (const env::Value::ValueError& e) {
         throw std::runtime_error(std::format("Invalid environment variable value format. Error: {}.", e.what()));
     }
@@ -133,3 +135,4 @@ bool Config::logDebug() const { return logDebug_; }
 bool Config::rendererPreview() const { return rendererPreview_; }
 int Config::rendererPreviewMaxSize() const { return rendererPreviewMaxSize_; }
 int Config::rendererPreviewUpscaleFactor() const { return rendererPreviewUpscaleFactor_; }
+bool Config::prometheusEnabled() const { return prometheusEnabled_; }
