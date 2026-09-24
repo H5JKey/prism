@@ -17,11 +17,12 @@ class Config {
     std::optional<std::string> s3Host_;
     std::optional<std::string> s3AccessKey_;
     std::optional<std::string> s3SecretKey_;
-    Logger::Level logLevel_ = Logger::Level::INFO;  // default
-    bool logDebug_ = false;                         // default
-    bool rendererPreview_ = false;                  // default
-    int rendererPreviewMaxSize_ = 256;              // default
-    int rendererPreviewUpscaleFactor_ = 2;          // default
+    Logger::Level logLevel_ = Logger::Level::INFO;
+    bool logDebug_ = false;
+    bool rendererPreview_ = false;
+    int rendererPreviewMaxSize_ = 256;
+    int rendererPreviewUpscaleFactor_ = 2;
+    bool prometheusEnabled_ = false;
 
    public:
     Config() = default;
@@ -46,4 +47,5 @@ class Config {
     bool rendererPreview() const;
     int rendererPreviewMaxSize() const;
     int rendererPreviewUpscaleFactor() const;
+    bool prometheusEnabled() const;
 };
