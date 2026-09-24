@@ -3,6 +3,7 @@ import subprocess
 from enum import StrEnum
 
 from _pytest._code import ExceptionInfo
+from sqlalchemy.orm import DeclarativeBase
 from testcontainers.community.postgres import PostgresContainer
 
 
@@ -39,3 +40,9 @@ def run_migrations(database_container: PostgresContainer) -> None:
         env=environment,
         check=True,
     )
+
+
+def model_to_dictionary(model: DeclarativeBase) -> dict:
+    return {
+        column.name: getattr(model, column.name) for column in model.__table__.columns
+    }
