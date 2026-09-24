@@ -16,7 +16,7 @@ class RenderRepository(AbstractRenderRepository):
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def get_render(self, render_id: int) -> Render | None:
+    async def get_by_id(self, render_id: int) -> Render | None:
         stmt = (
             select(Render)
             .options(joinedload(Render.file))
@@ -42,7 +42,7 @@ class RenderRepository(AbstractRenderRepository):
         return render
 
     async def add_render_file(self, render_id: int, file_id: int) -> Render:
-        render = cast(Render, await self.get_render(render_id))
+        render = cast(Render, await self.get_by_id(render_id))
         render.file_id = file_id
         await self.session.flush()
         logger.debug(
