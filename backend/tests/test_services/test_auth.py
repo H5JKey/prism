@@ -26,7 +26,9 @@ def register_user_data() -> RegisterRequest:
 
 class TestAuthService:
     async def test_register_valid(
-        self, register_user_data: RegisterRequest, auth_service: AuthService,
+        self,
+        register_user_data: RegisterRequest,
+        auth_service: AuthService,
     ) -> None:
         token = await auth_service.register(register_user_data)
         assert token.access_token is not None
@@ -72,7 +74,8 @@ class TestAuthService:
         assert token.token_type == BEARER_TOKEN_TYPE
 
     async def test_authenticate_username_not_exists(
-        self, auth_service: AuthService,
+        self,
+        auth_service: AuthService,
     ) -> None:
         auth_user_data = LoginRequest(
             username="wrong_username",
@@ -109,7 +112,8 @@ class TestAuthService:
         assert token.token_type == BEARER_TOKEN_TYPE
 
     async def test_refresh_access_token_user_not_exist(
-        self, auth_service: AuthService,
+        self,
+        auth_service: AuthService,
     ) -> None:
         with pytest.raises(UserIdNotFoundError):
             await auth_service.refresh_access_token(-1)
