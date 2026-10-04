@@ -86,7 +86,7 @@ class TestUserRepository:
             name="name",
             username="username",
             email="email@email.com",
-            encrypted_password="encrypted_password",  # noqa: S106
+            encrypted_password="encrypted_password",
         )
         created_user = await user_repository.create_user(user_create_data)
         session.expunge(created_user)

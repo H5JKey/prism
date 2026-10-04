@@ -11,7 +11,9 @@ from core.constants import (
     USER_USERNAME_MAX_LENGTH,
     USER_USERNAME_MIN_LENGTH,
 )
+from core.security.password_utils import validate_password
 from pydantic import ValidationError
+from schemas.auth import RegisterRequest
 from schemas.user import (
     UserBase,
     UserCreate,
@@ -174,6 +176,24 @@ class TestUserCreate:
         user_create_data[field] = value
         user_create = UserCreate(**user_create_data)
         assert user_create.model_dump() == user_create_data
+
+    def test_get_from_register_request(self) -> None:
+        register_user_data = RegisterRequest(
+            surname="surname",
+            name="name",
+            username="username",
+            email="email@email.com",
+            password="password",
+        )
+        create_user_data = UserCreate.get_from_register_request(register_user_data)
+        assert create_user_data.surname == register_user_data.surname
+        assert create_user_data.name == register_user_data.name
+        assert create_user_data.username == register_user_data.username
+        assert create_user_data.email == register_user_data.email
+        assert validate_password(
+            register_user_data.password,
+            create_user_data.encrypted_password,
+        )
 
 
 class TestUserUpdate:

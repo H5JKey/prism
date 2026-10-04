@@ -1,8 +1,10 @@
 from datetime import datetime
-from typing import ClassVar
+from typing import ClassVar, Self
 
+from core.security.password_utils import hash_password
 from pydantic import BaseModel, ConfigDict
 
+from schemas.auth import RegisterRequest
 from schemas.constraints.user import (
     EmailConstraint,
     EncryptedPasswordConstraint,
@@ -31,6 +33,19 @@ class UserCreate(UserBase):
 
     email: EmailConstraint
     encrypted_password: EncryptedPasswordConstraint
+
+    @classmethod
+    def get_from_register_request(cls, register_user_data: RegisterRequest) -> Self:
+        password = register_user_data.password
+        encrypted_password = hash_password(password)
+        register_user_data_dict = register_user_data.model_dump(
+            exclude={"password"},
+        )
+        create_user_data = cls(
+            encrypted_password=encrypted_password,
+            **register_user_data_dict,
+        )
+        return create_user_data
 
 
 class UserUpdate(UserBase):
