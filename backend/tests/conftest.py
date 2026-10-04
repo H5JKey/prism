@@ -1,6 +1,8 @@
 from collections.abc import AsyncGenerator, Generator
 
 import pytest
+from infrastructure.database.unit_of_work import UnitOfWork
+from services.auth import AuthService
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -49,3 +51,20 @@ async def session(
 ) -> AsyncGenerator[AsyncSession]:
     async with session_factory() as session:
         yield session
+
+
+@pytest.fixture(scope="function")
+async def unit_of_work(
+    session: AsyncSession,
+) -> AsyncGenerator[UnitOfWork]:
+    unit_of_work = UnitOfWork(session)
+    yield unit_of_work
+    await unit_of_work.rollback()
+
+
+@pytest.fixture(scope="function")
+async def auth_service(
+    unit_of_work: UnitOfWork,
+) -> AuthService:
+    auth_service = AuthService(unit_of_work)
+    return auth_service
