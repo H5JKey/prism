@@ -3,6 +3,7 @@ from collections.abc import AsyncGenerator, Generator
 import pytest
 from infrastructure.database.unit_of_work import UnitOfWork
 from services.auth import AuthService
+from services.user import UserService
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -68,3 +69,10 @@ async def auth_service(
 ) -> AuthService:
     auth_service = AuthService(unit_of_work)
     return auth_service
+
+@pytest.fixture(scope="function")
+async def user_service(
+    unit_of_work: UnitOfWork,
+) -> UserService:
+    user_service = UserService(unit_of_work)
+    return user_service

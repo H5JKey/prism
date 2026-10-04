@@ -20,7 +20,7 @@ class UserService:
 
     async def get_by_id(self, user_id: int) -> UserResponse:
         user_full_response = await self.get_profile_by_id(user_id)
-        return UserResponse.model_validate(user_full_response)
+        return UserResponse.model_validate(user_full_response.model_dump())
 
     async def get_profile_by_id(self, user_id: int) -> UserFullResponse:
         user = await self.user_repository.get_by_id(user_id)
