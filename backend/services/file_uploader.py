@@ -1,7 +1,5 @@
 import asyncio
-from os import fstat
 from typing import BinaryIO
-from uuid import uuid4
 
 from core.interfaces.clients import AbstractS3Client, AbstractUnitOfWorkClient
 from core.interfaces.services import AbstractFileUploader
@@ -24,29 +22,13 @@ class FileUploader(AbstractFileUploader):
         self.file_repository = self.unit_of_work.get_repository(FileRepository)
         self.bucket = bucket
 
-    @staticmethod
-    def _generate_key(file_name: str) -> str:
-        uuid = uuid4()
-        key = f"{uuid}_{file_name}"
-        return key
-
-    @staticmethod
-    def _get_file_size(file: BinaryIO) -> int:
-        """
-        Получить размер файла в байтах.
-        """
-        file_descriptor = file.fileno()
-        file_status = fstat(file_descriptor)
-        size = file_status.st_size
-        return size
-
     async def upload(
         self,
         file_name: str,
         file: BinaryIO,
     ) -> FileResponse:
-        key = self._generate_key(file_name)
-        size = self._get_file_size(file)
+        key = self.s3_client.generate_key(file_name)
+        size = await self.s3_client.get_file_size(self.bucket, key)
         create_file_data = FileCreate(
             name=file_name,
             size=size,

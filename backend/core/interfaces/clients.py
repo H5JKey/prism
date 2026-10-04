@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from types import TracebackType
 from typing import BinaryIO, Self
+from uuid import uuid4
 
 from core.interfaces.repositories import AbstractRepository
 
@@ -45,6 +46,15 @@ class AbstractS3Client(ABC):
         """
         Метод для удаления файла из s3 хранилища.
         """
+
+    @classmethod
+    def generate_key(cls, file_name: str) -> str:
+        """
+        Генерация ключа файла по его имени.
+        """
+        uuid = uuid4()
+        key = f"{uuid}_{file_name}"
+        return key
 
 
 class AbstractUnitOfWorkClient(ABC):
