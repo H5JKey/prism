@@ -1,11 +1,9 @@
-from typing import cast
-
 from core.constants import ProjectVisibility
 from core.exceptions.auth import PermissionDeniedError
 from core.exceptions.project import ProjectIdNotFoundError
 from core.exceptions.tag import TagIdNotFoundError
+from core.exceptions.user import UserIdNotFoundError
 from core.interfaces.clients import AbstractUnitOfWorkClient
-from infrastructure.database.models import User
 from infrastructure.database.repositories import ProjectRepository, TagRepository
 from schemas.tag import TagCreate, TagResponse, TagResponseList
 
@@ -24,8 +22,14 @@ class TagService:
         get_owner_coroutine = self.project_repository.get_project_owner(
             project_id,
         )
-        owner = cast(User, await get_owner_coroutine)
-        if project.visibility == ProjectVisibility.private and user_id != owner.id:
+        project_owner = await get_owner_coroutine
+        if project_owner is None:
+            raise UserIdNotFoundError(user_id)
+
+        if (
+            project.visibility == ProjectVisibility.private
+            and user_id != project_owner.id
+        ):
             raise PermissionDeniedError
 
         tag_list = [
@@ -47,8 +51,11 @@ class TagService:
         get_owner_coroutine = self.project_repository.get_project_owner(
             project_id,
         )
-        owner = cast(User, await get_owner_coroutine)
-        if owner.id != user_id:
+        project_owner = await get_owner_coroutine
+        if project_owner is None:
+            raise UserIdNotFoundError(user_id)
+
+        if project_owner.id != user_id:
             raise PermissionDeniedError
 
         tag = await self.tag_repository.create_tag(create_tag_data)
@@ -62,8 +69,10 @@ class TagService:
         get_owner_coroutine = self.project_repository.get_project_owner(
             tag.project.id,
         )
-        owner = cast(User, await get_owner_coroutine)
-        if owner.id != user_id:
+        project_owner = await get_owner_coroutine
+        if project_owner is None:
+            raise UserIdNotFoundError(user_id)
+        if project_owner.id != user_id:
             raise PermissionDeniedError
 
         await self.tag_repository.delete_by_id(tag_id)

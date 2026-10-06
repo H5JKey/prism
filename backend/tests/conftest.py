@@ -8,6 +8,7 @@ from infrastructure.database.unit_of_work import UnitOfWork
 from infrastructure.minio.client import MinioClient
 from services.auth import AuthService
 from services.file_uploader import FileUploader
+from services.tag import TagService
 from services.user import UserService
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -136,3 +137,11 @@ async def file_uploader(
         unit_of_work=unit_of_work,
     )
     return file_uploader
+
+
+@pytest.fixture(scope="function")
+def tag_service(
+    unit_of_work: UnitOfWork,
+) -> TagService:
+    tag_service = TagService(unit_of_work)
+    return tag_service
