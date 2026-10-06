@@ -66,5 +66,11 @@ jobs:
       - name: install dependencies
         run: poetry install --with dev
 
+      - name: generate JWT keys
+        run: |
+            mkdir -p certs
+            openssl genrsa -out certs/jwt-private.pem 2048 
+            openssl rsa -in certs/jwt-private.pem -pubout -out certs/jwt-public.pem
+
       - name: run tests
         run: pytest -sv
