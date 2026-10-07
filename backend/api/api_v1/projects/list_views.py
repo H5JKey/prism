@@ -26,7 +26,7 @@ router = APIRouter()
     ],
 )
 async def get_public_projects(
-    project_pagination_service: ProjectPaginationService,
+    project_pagination_service: ProjectPaginationServiceDep,
     size: PaginationSizeDep = 10,
     page: PaginationPageDep = 1,
 ) -> ProjectResponseList:

@@ -7,8 +7,8 @@ from infrastructure.database.unit_of_work import UnitOfWork
 from infrastructure.minio.client import MinioClient
 from services.auth import AuthService
 from services.file_uploader import FileUploader
-from services.projects.access_validator import ProjectAccessValidatorService
 from services.projects.project import ProjectService
+from services.projects.project_access_validator import ProjectAccessValidatorService
 from services.projects.project_pagination import ProjectPaginationService
 from services.tag import TagService
 from services.user import UserService
