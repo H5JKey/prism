@@ -12,7 +12,6 @@ from schemas.project import (
     ProjectWithRenderCreate,
     ProjectWithRenderResponse,
 )
-from services.projects.project_pagination import ProjectPaginationService
 
 router = APIRouter()
 
