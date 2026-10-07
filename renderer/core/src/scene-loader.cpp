@@ -172,10 +172,11 @@ void SceneLoader::loadNode(const fastgltf::Node& node, const fastgltf::Asset& as
 
     /* Loading meshes*/
     if (node.meshIndex.has_value()) {
+        Scene::Object object;
         const auto& gltfMesh = asset.meshes[node.meshIndex.value()];
-        Scene::Mesh mesh = loadMesh(gltfMesh, asset);
-        mesh.transform = transform;
-        scene.meshes.push_back(std::move(mesh));
+        object.mesh = loadMesh(gltfMesh, asset);
+        object.transform = transform;
+        scene.objects.push_back(std::move(object));
     }
     for (const auto& child : node.children) {
         loadNode(asset.nodes[child], asset, scene, transform);
@@ -326,9 +327,9 @@ Scene SceneLoader::loadGltf(const fastgltf::Asset& asset) {
         logger.warning("Camera was not found in file. Default camera will be applied");
         glm::vec3 boxMax(-std::numeric_limits<float>::infinity()), boxMin(std::numeric_limits<float>::infinity());
         bool empty = true;
-        for (const auto& mesh : scene.getMeshes()) {
-            for (auto v : mesh.vertices) {
-                v = glm::vec3(mesh.transform * glm::vec4(v, 1.0));
+        for (const auto& object : scene.getObjects()) {
+            for (auto v : object.mesh.vertices) {
+                v = glm::vec3(object.transform * glm::vec4(v, 1.0));
                 empty = false;
                 boxMax = glm::max(boxMax, v);
                 boxMin = glm::min(boxMin, v);
@@ -356,7 +357,7 @@ Scene SceneLoader::loadGltf(const fastgltf::Asset& asset) {
     for (const auto& material : asset.materials) {
         scene.materials.push_back(loadMaterial(material, scene.textures, asset));
     }
-    logger.info(std::format("Scene loaded. Meshes: {}, Materials: {}, Textures: {}", scene.meshes.size(),
+    logger.info(std::format("Scene loaded. Meshes: {}, Materials: {}, Textures: {}", scene.objects.size(),
                             scene.materials.size(), scene.textures.size()));
     return scene;
 }
@@ -364,9 +365,9 @@ Scene SceneLoader::loadGltf(const fastgltf::Asset& asset) {
 void SceneLoader::addPlane(Scene& scene, float planeSize) {
     glm::vec3 boxMax(-std::numeric_limits<float>::infinity()), boxMin(std::numeric_limits<float>::infinity());
     bool empty = true;
-    for (const auto& mesh : scene.getMeshes()) {
-        for (auto v : mesh.vertices) {
-            v = glm::vec3(mesh.transform * glm::vec4(v, 1.0));
+    for (const auto& object : scene.getObjects()) {
+        for (auto v : object.mesh.vertices) {
+            v = glm::vec3(object.transform * glm::vec4(v, 1.0));
             empty = false;
             boxMax = glm::max(boxMax, v);
             boxMin = glm::min(boxMin, v);
@@ -378,13 +379,13 @@ void SceneLoader::addPlane(Scene& scene, float planeSize) {
     } else {
         center = glm::vec3(0, 0, 0);
     }
-    Scene::Mesh planeMesh;
-    planeMesh.transform = glm::mat4(1.0);
-    planeMesh.vertices = {glm::vec3(center.x - planeSize, boxMin.y, center.z + planeSize),
-                          glm::vec3(center.x - planeSize, boxMin.y, center.z - planeSize),
-                          glm::vec3(center.x + planeSize, boxMin.y, center.z - planeSize),
-                          glm::vec3(center.x + planeSize, boxMin.y, center.z + planeSize)};
-    planeMesh.vertexIndices = {3, 1, 0, 2, 1, 3};
+    Scene::Object plane;
+    plane.transform = glm::mat4(1.0);
+    plane.mesh.vertices = {glm::vec3(center.x - planeSize, boxMin.y, center.z + planeSize),
+                           glm::vec3(center.x - planeSize, boxMin.y, center.z - planeSize),
+                           glm::vec3(center.x + planeSize, boxMin.y, center.z - planeSize),
+                           glm::vec3(center.x + planeSize, boxMin.y, center.z + planeSize)};
+    plane.mesh.vertexIndices = {3, 1, 0, 2, 1, 3};
 
     Scene::Mesh::Primitive primitive1, primitive2;
     primitive1.startVertexIndex = 0;
@@ -395,8 +396,8 @@ void SceneLoader::addPlane(Scene& scene, float planeSize) {
     primitive1.materialId = scene.materials.size() - 1;
     primitive2.materialId = scene.materials.size() - 1;
 
-    planeMesh.primitives.push_back(primitive1);
-    planeMesh.primitives.push_back(primitive2);
+    plane.mesh.primitives.push_back(primitive1);
+    plane.mesh.primitives.push_back(primitive2);
 
-    scene.meshes.push_back(planeMesh);
+    scene.objects.push_back(plane);
 }

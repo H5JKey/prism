@@ -19,7 +19,7 @@
 
 ---
 
-## Diagnostics (1920x1080, 500 samples)
+## Diagnostics (1920x1080, 128 samples)
 
 <table>
   <tr>
