@@ -1,6 +1,7 @@
 from core.config.application import settings
 from core.exceptions.file import FileIdNotFoundError
 from core.interfaces.clients import AbstractS3Client, AbstractUnitOfWorkClient
+from core.interfaces.services import AbstractProjectAccessValidatorService
 from core.logging import get_logger
 from infrastructure.database.repositories import (
     FileRepository,
@@ -22,8 +23,6 @@ from schemas.project import (
 )
 from schemas.render import RenderCreate
 
-from services.projects.access_validator import ProjectAccessValidatorService
-
 logger = get_logger(__name__)
 
 
@@ -38,7 +37,7 @@ class ProjectService:
     def __init__(
         self,
         unit_of_work: AbstractUnitOfWorkClient,
-        project_access_validator: ProjectAccessValidatorService,
+        project_access_validator: AbstractProjectAccessValidatorService,
     ) -> None:
         self.project_access_validator = project_access_validator
         self.unit_of_work = unit_of_work

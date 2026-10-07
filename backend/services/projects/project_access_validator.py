@@ -3,13 +3,14 @@ from core.exceptions.auth import PermissionDeniedError
 from core.exceptions.project import ProjectIdNotFoundError
 from core.exceptions.user import UserIdNotFoundError
 from core.interfaces.clients import AbstractUnitOfWorkClient
+from core.interfaces.services import AbstractProjectAccessValidatorService
 from infrastructure.database.models import Project
 from infrastructure.database.repositories import (
     ProjectRepository,
 )
 
 
-class ProjectAccessValidatorService:
+class ProjectAccessValidatorService(AbstractProjectAccessValidatorService):
     def __init__(
         self,
         unit_of_work: AbstractUnitOfWorkClient,
