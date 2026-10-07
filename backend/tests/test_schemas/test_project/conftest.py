@@ -25,7 +25,7 @@ def project_with_render_create_data(
 ) -> dict:
     return {
         "render": render_create_payload_data,
-        "project": project_create_data,
+        "projects": project_create_data,
     }
 
 

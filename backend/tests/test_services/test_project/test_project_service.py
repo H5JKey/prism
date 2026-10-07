@@ -10,7 +10,7 @@ from schemas.project import (
     ProjectPartialUpdate,
     ProjectWithRenderCreate,
 )
-from services.project import ProjectService
+from services.projects import ProjectService
 
 
 class TestProjectService:
@@ -29,7 +29,7 @@ class TestProjectService:
             autospec=True,
         )
         mocker.patch(
-            "services.project.ProjectWithRenderFileFullResponse.get_from_database",
+            "services.projects.ProjectWithRenderFileFullResponse.get_from_database",
             return_value=full_project,
             autospec=True,
         )

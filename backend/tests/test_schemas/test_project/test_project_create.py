@@ -58,7 +58,7 @@ class TestProjectWithRenderCreate:
 
     @pytest.mark.parametrize(
         "field",
-        ["render", "project"],
+        ["render", "projects"],
     )
     def test_project_with_render_create_without_required_fields(
         self,

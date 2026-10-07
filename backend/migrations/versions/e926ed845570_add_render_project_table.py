@@ -1,4 +1,4 @@
-"""add render project table
+"""add render projects table
 
 Revision ID: e926ed845570
 Revises: 3f72bb9a1698

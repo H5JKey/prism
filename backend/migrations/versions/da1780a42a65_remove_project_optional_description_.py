@@ -1,4 +1,4 @@
-"""remove project optional description constraint
+"""remove projects optional description constraint
 
 Revision ID: da1780a42a65
 Revises: 11f4a9085334

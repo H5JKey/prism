@@ -13,7 +13,7 @@ from core.constants import (
 from core.interfaces.kafka import AbstractKafkaConsumer, AbstractKafkaProducer
 from core.logging import get_logger
 from schemas.event import DLQMessage, RenderGeneratedEvent
-from services.project import ProjectService
+from services.projects import ProjectService
 
 from infrastructure.database.core import session_factory
 from infrastructure.database.unit_of_work import UnitOfWork
