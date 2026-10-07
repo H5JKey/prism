@@ -1,5 +1,5 @@
 from types import TracebackType
-from typing import Self, cast
+from typing import Self
 
 from core.config.application import settings
 from core.constants import ProjectVisibility
@@ -9,7 +9,7 @@ from core.exceptions.project import ProjectIdNotFoundError
 from core.exceptions.user import UserIdNotFoundError
 from core.interfaces.clients import AbstractS3Client, AbstractUnitOfWorkClient
 from core.logging import get_logger
-from infrastructure.database.models import Project, User
+from infrastructure.database.models import Project
 from infrastructure.database.repositories import (
     FileRepository,
     OutboxRepository,
@@ -164,6 +164,9 @@ class ProjectService:
         key = file_location.key
 
         project = await self.project_repository.get_by_id(project_id)
+        if project is None:
+            raise ProjectIdNotFoundError(project_id)
+
         name = f"{project.name}.png"
         size = await s3_client.get_file_size(bucket, key)
         file = FileCreate(
@@ -338,6 +341,8 @@ class ProjectService:
         get_owner_coroutine = self.project_repository.get_project_owner(
             project_id,
         )
-        owner = cast(User, await get_owner_coroutine)
-        if owner.id != user_id:
+        project_owner = await get_owner_coroutine
+        if project_owner is None:
+            raise UserIdNotFoundError(user_id)
+        if project_owner.id != user_id:
             raise PermissionDeniedError
