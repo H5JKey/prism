@@ -1,4 +1,4 @@
-"""switch render project to projects table
+"""switch render projects to projects table
 
 Revision ID: ad7f1ef7f078
 Revises: e926ed845570

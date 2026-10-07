@@ -2,7 +2,7 @@ import pytest
 from core.exceptions.user import UserIdNotFoundError
 from infrastructure.database.models import Project, User
 from pytest_mock import MockerFixture
-from services.project import ProjectService
+from services.projects import ProjectService
 
 
 class TestProjectPaginationService:

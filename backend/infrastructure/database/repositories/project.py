@@ -85,7 +85,7 @@ class ProjectRepository(AbstractProjectRepository):
         project.status = RenderStatus.completed.value  # type: ignore[assignment]
         await self.session.flush()
         logger.debug(
-            "Updated project status in transaction, transaction_id=%s, project_id=%s, status=%s",  # noqa: E501
+            "Updated projects status in transaction, transaction_id=%s, project_id=%s, status=%s",  # noqa: E501
             id(self.session),
             project_id,
             project.status,
@@ -106,7 +106,7 @@ class ProjectRepository(AbstractProjectRepository):
         self.session.add(project)
         await self.session.flush()
         logger.debug(
-            "Created project in transaction, transaction_id=%s, project_id=%s, name=%s, source_file_id=%s, visibility=%s",  # noqa: E501
+            "Created projects in transaction, transaction_id=%s, project_id=%s, name=%s, source_file_id=%s, visibility=%s",  # noqa: E501
             id(self.session),
             project.id,
             project.name,
@@ -131,7 +131,7 @@ class ProjectRepository(AbstractProjectRepository):
 
         await self.session.flush()
         logger.debug(
-            "Updated project in transaction, transaction_id=%s, project_id=%s, name=%s, source_file_id=%s, visibility=%s",  # noqa: E501
+            "Updated projects in transaction, transaction_id=%s, project_id=%s, name=%s, source_file_id=%s, visibility=%s",  # noqa: E501
             id(self.session),
             project.id,
             project.name,
@@ -145,7 +145,7 @@ class ProjectRepository(AbstractProjectRepository):
         await self.session.execute(stmt)
         await self.session.flush()
         logger.debug(
-            "Deleted project in transaction, transaction_id=%s, project_id=%s",
+            "Deleted projects in transaction, transaction_id=%s, project_id=%s",
             id(self.session),
             project_id,
         )

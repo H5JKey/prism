@@ -7,7 +7,7 @@ from infrastructure.minio.client import MinioClient
 from schemas.auth import LoginRequest
 from services.auth import AuthService
 from services.file_uploader import FileUploader
-from services.project import ProjectService
+from services.projects import ProjectService
 from services.tag import TagService
 from services.user import UserService
 

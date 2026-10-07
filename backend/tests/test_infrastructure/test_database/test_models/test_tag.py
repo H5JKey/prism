@@ -73,5 +73,5 @@ class TestTag:
     async def test_tag_project_relationship_valid(self, session: AsyncSession) -> None:
         project = await create_default_project(session)
         tag = await create_tag(session, project=project)
-        await session.refresh(tag, ["project"])
+        await session.refresh(tag, ["projects"])
         assert tag.project is project
