@@ -13,7 +13,7 @@ from core.constants import (
 from core.interfaces.kafka import AbstractKafkaConsumer, AbstractKafkaProducer
 from core.logging import get_logger
 from schemas.event import DLQMessage, RenderGeneratedEvent
-from services.projects import ProjectService
+from services.projects.render_generate_handler import RenderGenerateHandlerService
 
 from infrastructure.database.core import session_factory
 from infrastructure.database.unit_of_work import UnitOfWork
@@ -123,15 +123,15 @@ async def consume_render_generated(message: ConsumerRecord) -> None:
     async with (
         session_factory() as session,
         UnitOfWork(session) as unit_of_work,
-        ProjectService(unit_of_work) as project_service,
+        RenderGenerateHandlerService(unit_of_work) as render_generate_handler_service,
         minio_session.create_client(
             "s3",
             **settings.minio.config,
         ) as client,
         MinioClient(client) as s3_client,
     ):
-        await project_service.update_project_status(project_id)
-        await project_service.handle_render_generated(
+        await render_generate_handler_service.update_project_status(project_id)
+        await render_generate_handler_service.handle_render_generated(
             render_generated_event,
             s3_client,
         )

@@ -7,7 +7,8 @@ from infrastructure.minio.client import MinioClient
 from schemas.auth import LoginRequest
 from services.auth import AuthService
 from services.file_uploader import FileUploader
-from services.projects import ProjectService
+from services.projects.project import ProjectService
+from services.projects.project_pagination import ProjectPaginationService
 from services.tag import TagService
 from services.user import UserService
 
@@ -21,6 +22,7 @@ from dependencies.repositories import get_render_repository, get_unit_of_work
 from dependencies.services import (
     get_auth_service,
     get_input_file_uploader,
+    get_project_pagination_service,
     get_project_service,
     get_tag_service,
     get_user_service,
@@ -66,6 +68,12 @@ ProjectServiceDep = Annotated[
     ProjectService,
     Depends(get_project_service),
 ]
+
+ProjectPaginationServiceDep = Annotated[
+    ProjectPaginationService,
+    Depends(get_project_pagination_service),
+]
+
 
 RenderRepositoryDep = Annotated[
     RenderRepository,

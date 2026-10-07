@@ -10,7 +10,7 @@ from schemas.project import (
     ProjectPartialUpdate,
     ProjectWithRenderCreate,
 )
-from services.projects import ProjectService
+from services.projects.project import ProjectService
 
 
 class TestProjectService:
