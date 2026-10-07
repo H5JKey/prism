@@ -334,15 +334,15 @@ void RenderEngine::uploadGPUBuffers(const GPUData& gpuData, const BVH& bvh) {
 RenderEngine::GPUData RenderEngine::convertSceneToGPUData(const Scene& scene) {
     logger.debug("Preparing scene data for GPU");
     GPUData data;
-    for (const auto& mesh : scene.getMeshes()) {
+    for (const auto& object : scene.getObjects()) {
         int indexOffset = data.vertices.size();
-        for (const auto& v : mesh.vertices) data.vertices.push_back(mesh.transform * glm::vec4(v, 1.0));
-        for (const auto& uv : mesh.texCoords) data.texCoords.push_back(glm::vec4(uv.x, uv.y, 1.0f, 1.0f));
+        for (const auto& v : object.mesh.vertices) data.vertices.push_back(object.transform * glm::vec4(v, 1.0));
+        for (const auto& uv : object.mesh.texCoords) data.texCoords.push_back(glm::vec4(uv.x, uv.y, 1.0f, 1.0f));
 
-        for (const auto& primitive : mesh.primitives) {
+        for (const auto& primitive : object.mesh.primitives) {
             for (int i = primitive.startVertexIndex; i < primitive.vertexIndicesCount + primitive.startVertexIndex;
                  i++) {
-                data.vertexIndices.push_back(mesh.vertexIndices[i] + indexOffset);
+                data.vertexIndices.push_back(object.mesh.vertexIndices[i] + indexOffset);
             }
             for (int i = 0; i < primitive.vertexIndicesCount / 3; i++) {
                 data.materialIndices.push_back(primitive.materialId);

@@ -24,9 +24,10 @@ TEST(SceneLoaderTest, loadSceneCorrectly) {
     EXPECT_NO_THROW(scene = loader.loadGltfFromFile("tests/data/test-scene.glb"));
 
     /* Testing geometry */
-    const auto& meshes = scene.getMeshes();
-    ASSERT_EQ(meshes.size(), 1);
-    const auto& mesh = meshes[0];
+    const auto& objects = scene.getObjects();
+    ASSERT_EQ(objects.size(), 1);
+    const auto& object = objects[0];
+    const auto& mesh = object.mesh;
 
     std::vector<glm::vec3> expectedVertices = {
         glm::vec3(0.5, -0.5, 0.5),  glm::vec3(-0.5, -0.5, 0.5),  glm::vec3(0.5, 0.5, 0.5),
@@ -62,7 +63,7 @@ TEST(SceneLoaderTest, loadSceneCorrectly) {
         {0.9397, 0.6840, 0, 2}, {0, 0, 1, 0}, {0.3420, -1.8794, 0, 0}, {0, 0, 0, 1}};
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
-            EXPECT_NEAR(mesh.transform[i][j], expectedTransform[j][i], 0.001);
+            EXPECT_NEAR(object.transform[i][j], expectedTransform[j][i], 0.001);
         }
     }
 

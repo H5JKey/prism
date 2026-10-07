@@ -19,10 +19,16 @@ class Scene {
         std::vector<int> vertexIndices;
         std::vector<glm::vec3> vertices;
         std::vector<glm::vec2> texCoords;
-        glm::mat4 transform;
         std::vector<Primitive> primitives;
 
-        Mesh() : transform(glm::mat4(1.0f)) {}
+        Mesh() = default;
+    };
+
+    struct Object {
+        Mesh mesh;
+        glm::mat4 transform;
+
+        Object() : transform(glm::mat4(1.0f)) {}
     };
 
     struct TextureData {
@@ -76,7 +82,7 @@ class Scene {
 
     Camera camera;
     Sun sun;
-    std::vector<Mesh> meshes;
+    std::vector<Object> objects;
     std::vector<Material> materials;
     glm::vec3 backgroundColor;
 
@@ -87,7 +93,7 @@ class Scene {
     Camera getCamera() const noexcept;
     Sun getSun() const noexcept;
     glm::vec3 getBackgroundColor() const noexcept;
-    const std::vector<Mesh>& getMeshes() const noexcept;
+    const std::vector<Object>& getObjects() const noexcept;
     const std::vector<Material>& getMaterials() const noexcept;
     const std::vector<TextureData>& getTexturesData() const noexcept;
     void setCamera(const Camera& camera);

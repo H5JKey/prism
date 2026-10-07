@@ -511,13 +511,17 @@ void main() {
 
     float variance = 0.0;
     float error = 0.0;
+    float stdError = 0.0;
     if (N >= 2) {
-        variance = M2 / float(N - 1);
-        error = sqrt(variance / float(N)) / (abs(mean) + 0.0001);
+        float variance = M2 / float(N - 1);
+        stdError = sqrt(variance / float(N));
     }
-    imageStore(heatMap, pixel, vec4(heatColor(error), 1.0));
+    float lo = log(1e-3);
+    float hi = log(1e-2);
+    float t = clamp((log(max(stdError, 1e-8)) - lo) / (hi - lo), 0.0, 1.0);
+    imageStore(heatMap, pixel, vec4(heatColor(t), 1.0));
 
-    if (N >= 32 && error < 0.01) {
+    if (N >= 32 && stdError < 0.001) {
         return;
     }
 
