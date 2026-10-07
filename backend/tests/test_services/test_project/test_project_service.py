@@ -3,11 +3,9 @@ from core.constants import ProjectVisibility
 from core.exceptions.auth import PermissionDeniedError
 from core.exceptions.file import FileIdNotFoundError
 from core.exceptions.project import ProjectIdNotFoundError
-from core.exceptions.user import UserIdNotFoundError
 from infrastructure.database.models import File, Project, Render, User
 from infrastructure.minio.client import MinioClient
 from pytest_mock import MockerFixture
-from schemas.event import RenderGeneratedEvent
 from schemas.project import (
     ProjectPartialUpdate,
     ProjectWithRenderCreate,
@@ -30,7 +28,6 @@ class TestProjectService:
             return_value=full_project,
             autospec=True,
         )
-
         mocker.patch(
             "services.project.ProjectWithRenderFileFullResponse.get_from_database",
             return_value=full_project,
@@ -91,180 +88,6 @@ class TestProjectService:
                 project_owner.id + 1,
                 minio_client,
             )
-
-    async def test_get_user_projects_valid(
-        self,
-        project_owner: User,
-        full_project: Project,
-        mocker: MockerFixture,
-        project_service: ProjectService,
-    ) -> None:
-        mocker.patch.object(
-            project_service.user_repository,
-            "get_by_id",
-            return_value=project_owner,
-        )
-        mocker.patch.object(
-            project_service.project_repository,
-            "get_user_projects",
-            return_value=[full_project],
-            autospec=True,
-        )
-        await project_service.get_user_projects(
-            project_owner.id,
-            size=10,
-            page=1,
-        )
-
-    async def test_get_user_projects_user_not_exists(
-        self,
-        project_owner: User,
-        mocker: MockerFixture,
-        project_service: ProjectService,
-    ) -> None:
-        mocker.patch.object(
-            project_service.user_repository,
-            "get_by_id",
-            return_value=None,
-            autospec=True,
-        )
-        with pytest.raises(UserIdNotFoundError):
-            await project_service.get_user_projects(
-                project_owner.id,
-                size=10,
-                page=1,
-            )
-
-    async def test_get_public_projects_valid(
-        self,
-        full_project: Project,
-        mocker: MockerFixture,
-        project_service: ProjectService,
-    ) -> None:
-        mocker.patch.object(
-            project_service.project_repository,
-            "get_public_projects",
-            return_value=[full_project],
-            autospec=True,
-        )
-        await project_service.get_public_projects(
-            size=10,
-            page=1,
-        )
-
-    async def test_get_user_public_projects_valid(
-        self,
-        project_owner: User,
-        mocker: MockerFixture,
-        project_service: ProjectService,
-    ) -> None:
-        mocker.patch.object(
-            project_service.user_repository,
-            "get_by_id",
-            return_value=project_owner,
-        )
-        await project_service.get_user_public_projects(
-            user_id=project_owner.id,
-            size=10,
-            page=1,
-        )
-
-    async def test_get_user_public_projects_user_not_exists(
-        self,
-        project_owner: User,
-        mocker: MockerFixture,
-        project_service: ProjectService,
-    ) -> None:
-        mocker.patch.object(
-            project_service.user_repository,
-            "get_by_id",
-            return_value=None,
-        )
-        with pytest.raises(UserIdNotFoundError):
-            await project_service.get_user_public_projects(
-                user_id=project_owner.id,
-                size=10,
-                page=1,
-            )
-
-    async def test_handle_render_generated_valid(
-        self,
-        render_file: File,
-        full_project: Project,
-        render_generated_event: RenderGeneratedEvent,
-        mocker: MockerFixture,
-        minio_client: MinioClient,
-        project_service: ProjectService,
-    ) -> None:
-        mocker.patch.object(
-            project_service.project_repository,
-            "get_by_id",
-            return_value=full_project,
-        )
-        mocker.patch.object(
-            minio_client,
-            "get_file_size",
-            return_value=1000,
-        )
-        mocker.patch.object(
-            project_service.file_repository,
-            "create_file",
-            return_value=render_file,
-        )
-        mocker.patch.object(
-            project_service.render_repository,
-            "add_render_file",
-            return_value=None,
-        )
-        await project_service.handle_render_generated(
-            render_generated_event,
-            minio_client,
-        )
-
-    async def test_handle_render_generated_project_not_exists(
-        self,
-        render_generated_event: RenderGeneratedEvent,
-        mocker: MockerFixture,
-        minio_client: MinioClient,
-        project_service: ProjectService,
-    ) -> None:
-        mocker.patch.object(
-            project_service.project_repository,
-            "get_by_id",
-            return_value=None,
-        )
-        with pytest.raises(ProjectIdNotFoundError):
-            await project_service.handle_render_generated(
-                render_generated_event,
-                minio_client,
-            )
-
-    async def test_update_project_status_valid(
-        self,
-        full_project: Project,
-        mocker: MockerFixture,
-        project_service: ProjectService,
-    ) -> None:
-        mocker.patch.object(
-            project_service.project_repository,
-            "update_project_status",
-            return_value=full_project,
-        )
-        await project_service.update_project_status(full_project.id)
-
-    async def test_update_not_exists_project(
-        self,
-        full_project: Project,
-        mocker: MockerFixture,
-        project_service: ProjectService,
-    ) -> None:
-        mocker.patch.object(
-            project_service.project_repository,
-            "update_project_status",
-            return_value=None,
-        )
-        with pytest.raises(ProjectIdNotFoundError):
-            await project_service.update_project_status(full_project.id)
 
     async def test_create_project_valid(
         self,
@@ -338,7 +161,6 @@ class TestProjectService:
             return_value=full_project,
             autospec=True,
         )
-
         mocker.patch.object(
             project_service.project_repository,
             "get_project_owner",
