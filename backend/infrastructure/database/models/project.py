@@ -57,12 +57,12 @@ class Project(Base):
     render: Mapped["Render"] = relationship(
         "Render",
         foreign_keys=[render_id],
-        back_populates="projects",
+        back_populates="project",
     )
     tags: Mapped[list["Tag"]] = relationship(
         "Tag",
         foreign_keys="Tag.project_id",
-        back_populates="projects",
+        back_populates="project",
     )
 
     __table_args__ = (

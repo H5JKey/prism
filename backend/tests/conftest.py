@@ -6,7 +6,10 @@ from infrastructure.database.unit_of_work import UnitOfWork
 from infrastructure.minio.client import MinioClient
 from services.auth import AuthService
 from services.file_uploader import FileUploader
+from services.projects.access_validator import ProjectAccessValidatorService
 from services.projects.project import ProjectService
+from services.projects.project_pagination import ProjectPaginationService
+from services.projects.render_generate_handler import RenderGenerateHandlerService
 from services.tag import TagService
 from services.user import UserService
 from sqlalchemy.ext.asyncio import (
@@ -110,11 +113,36 @@ async def file_uploader(
 
 
 @pytest.fixture(scope="function")
+def project_access_validator(
+    unit_of_work: UnitOfWork,
+) -> ProjectAccessValidatorService:
+    project_access_validator = ProjectAccessValidatorService(unit_of_work)
+    return project_access_validator
+
+
+@pytest.fixture(scope="function")
 def project_service(
     unit_of_work: UnitOfWork,
+    project_access_validator: ProjectAccessValidatorService,
 ) -> ProjectService:
-    project_service = ProjectService(unit_of_work)
+    project_service = ProjectService(unit_of_work, project_access_validator)
     return project_service
+
+
+@pytest.fixture(scope="function")
+def project_pagination_service(
+    unit_of_work: UnitOfWork,
+) -> ProjectPaginationService:
+    project_pagination_service = ProjectPaginationService(unit_of_work)
+    return project_pagination_service
+
+
+@pytest.fixture(scope="function")
+def render_generate_handler(
+    unit_of_work: UnitOfWork,
+) -> RenderGenerateHandlerService:
+    render_generate_handler_service = RenderGenerateHandlerService(unit_of_work)
+    return render_generate_handler_service
 
 
 @pytest.fixture(scope="function")

@@ -23,13 +23,13 @@ class TestProjectService:
         project_service: ProjectService,
     ) -> None:
         mocker.patch.object(
-            project_service,
-            "_validate_access_to_get_project",
+            project_service.project_access_validator,
+            "validate_access_to_get_project",
             return_value=full_project,
             autospec=True,
         )
         mocker.patch(
-            "services.projects.ProjectWithRenderFileFullResponse.get_from_database",
+            "services.projects.project.ProjectWithRenderFileFullResponse.get_from_database",
             return_value=full_project,
             autospec=True,
         )
@@ -71,13 +71,13 @@ class TestProjectService:
     ) -> None:
         full_project.visibility = ProjectVisibility.private
         mocker.patch.object(
-            project_service.project_repository,
+            project_service.project_access_validator.project_repository,
             "get_by_id",
             return_value=full_project,
             autospec=True,
         )
         mocker.patch.object(
-            project_service.project_repository,
+            project_service.project_access_validator.project_repository,
             "get_project_owner",
             return_value=project_owner,
             autospec=True,
@@ -156,15 +156,27 @@ class TestProjectService:
         project_service: ProjectService,
     ) -> None:
         mocker.patch.object(
-            project_service.project_repository,
+            project_service.project_access_validator.project_repository,
             "get_by_id",
             return_value=full_project,
+            autospec=True,
+        )
+        mocker.patch.object(
+            project_service.project_access_validator.project_repository,
+            "get_project_owner",
+            return_value=project_owner,
             autospec=True,
         )
         mocker.patch.object(
             project_service.project_repository,
             "get_project_owner",
             return_value=project_owner,
+            autospec=True,
+        )
+        mocker.patch.object(
+            project_service.project_repository,
+            "partial_update_project",
+            return_value=full_project,
             autospec=True,
         )
         partial_update_project_data = ProjectPartialUpdate(
@@ -207,13 +219,13 @@ class TestProjectService:
         project_service: ProjectService,
     ) -> None:
         mocker.patch.object(
-            project_service.project_repository,
+            project_service.project_access_validator.project_repository,
             "get_by_id",
             return_value=full_project,
             autospec=True,
         )
         mocker.patch.object(
-            project_service.project_repository,
+            project_service.project_access_validator.project_repository,
             "get_project_owner",
             return_value=project_owner,
             autospec=True,
@@ -236,12 +248,12 @@ class TestProjectService:
         project_service: ProjectService,
     ) -> None:
         mocker.patch.object(
-            project_service.project_repository,
+            project_service.project_access_validator.project_repository,
             "get_by_id",
             return_value=full_project,
         )
         mocker.patch.object(
-            project_service.project_repository,
+            project_service.project_access_validator.project_repository,
             "get_project_owner",
             return_value=project_owner,
         )
