@@ -2,6 +2,7 @@ from dependencies.annotations import (
     AuthUserByAccessTokenDep,
     PaginationPageDep,
     PaginationSizeDep,
+    ProjectPaginationServiceDep,
     ProjectServiceDep,
 )
 from dependencies.auth import get_auth_user_by_access_token
@@ -11,6 +12,7 @@ from schemas.project import (
     ProjectWithRenderCreate,
     ProjectWithRenderResponse,
 )
+from services.projects.project_pagination import ProjectPaginationService
 
 router = APIRouter()
 
@@ -24,11 +26,11 @@ router = APIRouter()
     ],
 )
 async def get_public_projects(
-    project_service: ProjectServiceDep,
+    project_pagination_service: ProjectPaginationService,
     size: PaginationSizeDep = 10,
     page: PaginationPageDep = 1,
 ) -> ProjectResponseList:
-    return await project_service.get_public_projects(
+    return await project_pagination_service.get_public_projects(
         size=size,
         page=page,
     )
@@ -56,12 +58,12 @@ async def create_project(
     status_code=status.HTTP_200_OK,
 )
 async def get_current_user_projects(
-    project_service: ProjectServiceDep,
+    project_pagination_service: ProjectPaginationServiceDep,
     user_id: AuthUserByAccessTokenDep,
     size: PaginationSizeDep = 10,
     page: PaginationPageDep = 1,
 ) -> ProjectResponseList:
-    return await project_service.get_user_projects(
+    return await project_pagination_service.get_user_projects(
         user_id=user_id,
         size=size,
         page=page,
@@ -77,12 +79,12 @@ async def get_current_user_projects(
     ],
 )
 async def get_user_public_projects(
-    project_service: ProjectServiceDep,
+    project_pagination_service: ProjectPaginationServiceDep,
     user_id: int,
     size: PaginationSizeDep = 10,
     page: PaginationPageDep = 1,
 ) -> ProjectResponseList:
-    return await project_service.get_user_public_projects(
+    return await project_pagination_service.get_user_public_projects(
         user_id=user_id,
         size=size,
         page=page,

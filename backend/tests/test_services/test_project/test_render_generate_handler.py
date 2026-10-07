@@ -4,7 +4,7 @@ from infrastructure.database.models import File, Project
 from infrastructure.minio.client import MinioClient
 from pytest_mock import MockerFixture
 from schemas.event import RenderGeneratedEvent
-from services.projects import ProjectService
+from services.projects.project import ProjectService
 
 
 class TestRenderGenerateHandler:

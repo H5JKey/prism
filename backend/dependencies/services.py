@@ -7,7 +7,9 @@ from infrastructure.database.unit_of_work import UnitOfWork
 from infrastructure.minio.client import MinioClient
 from services.auth import AuthService
 from services.file_uploader import FileUploader
-from services.projects import ProjectService
+from services.projects.access_validator import ProjectAccessValidatorService
+from services.projects.project import ProjectService
+from services.projects.project_pagination import ProjectPaginationService
 from services.tag import TagService
 from services.user import UserService
 
@@ -61,10 +63,24 @@ async def get_project_service(
         Depends(get_unit_of_work),
     ],
 ) -> AsyncGenerator[ProjectService]:
+    project_access_validator = ProjectAccessValidatorService(unit_of_work)
     project_service = ProjectService(
         unit_of_work,
+        project_access_validator,
     )
     yield project_service
+
+
+async def get_project_pagination_service(
+    unit_of_work: Annotated[
+        UnitOfWork,
+        Depends(get_unit_of_work),
+    ],
+) -> AsyncGenerator[ProjectPaginationService]:
+    project_pagination_service = ProjectPaginationService(
+        unit_of_work,
+    )
+    yield project_pagination_service
 
 
 async def get_tag_service(
