@@ -123,5 +123,5 @@ class TestRender:
             source_file=file,
             render=render,
         )
-        await session.refresh(render, ["projects"])
+        await session.refresh(render, ["project"])
         assert render.project is project
