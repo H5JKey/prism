@@ -1,4 +1,5 @@
 from collections.abc import Generator
+from datetime import datetime
 from unittest.mock import AsyncMock
 
 import pytest
@@ -9,8 +10,10 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from schemas.file import FileResponse
 from schemas.token import TokenInfo
+from schemas.user import UserFullResponse, UserResponse
 from services.auth import AuthService
 from services.file_uploader import FileUploader
+from services.user import UserService
 
 
 @pytest.fixture(scope="session")
@@ -26,7 +29,8 @@ def client(application: FastAPI) -> TestClient:
 
 @pytest.fixture(scope="function")
 def auth_client(application: FastAPI) -> Generator[TestClient]:
-    application.dependency_overrides[get_auth_user_by_access_token] = lambda: 1
+    user_id = 1
+    application.dependency_overrides[get_auth_user_by_access_token] = lambda: user_id
     yield TestClient(application)
     application.dependency_overrides.pop(get_auth_user_by_access_token)
 
@@ -73,3 +77,42 @@ def auth_service() -> AuthService:
         return_value=refresh_access_token_response,
     )
     return auth_service
+
+
+@pytest.fixture(scope="session")
+def user_service() -> UserService:
+    user_service = AsyncMock()
+    user_full_response = UserFullResponse(
+        id=1,
+        registration_date=datetime(
+            year=2025,
+            month=1,
+            day=1,
+            hour=0,
+            minute=0,
+            second=0,
+        ),
+        surname="surname",
+        name="name",
+        username="username",
+        email="email@email.com",
+    )
+    user_response = UserResponse(
+        id=1,
+        registration_date=datetime(
+            year=2025,
+            month=1,
+            day=1,
+            hour=0,
+            minute=0,
+            second=0,
+        ),
+        surname="surname",
+        name="name",
+        username="username",
+    )
+    user_service.get_profile_by_id = AsyncMock(return_value=user_full_response)
+    user_service.update_user = AsyncMock(return_value=user_response)
+    user_service.delete_by_id = AsyncMock(return_value=None)
+    user_service.get_by_id = AsyncMock(return_value=user_response)
+    return user_service

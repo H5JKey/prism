@@ -36,7 +36,7 @@ async def update_current_user_profile(
 @router.delete(
     "/about-me",
     response_model=None,
-    status_code=status.HTTP_200_OK,
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_current_user_profile(
     user_id: AuthUserByAccessTokenDep,
@@ -50,7 +50,7 @@ async def delete_current_user_profile(
     response_model=UserResponse,
     status_code=status.HTTP_200_OK,
 )
-async def get_user_by_id(
+async def get_user_profile(
     user_id: int,
     user_service: UserServiceDep,
 ) -> UserResponse:
