@@ -9,10 +9,12 @@ from dependencies.auth import get_auth_user_by_access_token
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from schemas.file import FileResponse
+from schemas.tag import TagResponse, TagResponseList
 from schemas.token import TokenInfo
 from schemas.user import UserFullResponse, UserResponse
 from services.auth import AuthService
 from services.file_uploader import FileUploader
+from services.tag import TagService
 from services.user import UserService
 
 
@@ -116,3 +118,18 @@ def user_service() -> UserService:
     user_service.delete_by_id = AsyncMock(return_value=None)
     user_service.get_by_id = AsyncMock(return_value=user_response)
     return user_service
+
+
+@pytest.fixture(scope="function")
+def tag_service() -> TagService:
+    tag_service = AsyncMock()
+    tag_response = TagResponse(
+        id=1,
+        project_id=1,
+        name="tag_name",
+    )
+    tag_response_list = TagResponseList(tag_list=[tag_response])
+    tag_service.create_tag = AsyncMock(return_value=tag_response)
+    tag_service.delete_by_id = AsyncMock(return_value=None)
+    tag_service.get_project_tags = AsyncMock(return_value=tag_response_list)
+    return tag_service
