@@ -3,10 +3,13 @@ from unittest.mock import AsyncMock
 
 import pytest
 from application_factory import create_app
+from core.constants import BEARER_TOKEN_TYPE
 from dependencies.auth import get_auth_user_by_access_token
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from schemas.file import FileResponse
+from schemas.token import TokenInfo
+from services.auth import AuthService
 from services.file_uploader import FileUploader
 
 
@@ -40,3 +43,33 @@ def file_uploader() -> FileUploader:
         return_value=file_response,
     )
     return file_uploader
+
+
+@pytest.fixture(scope="session")
+def auth_service() -> AuthService:
+    auth_service = AsyncMock()
+    register_token = TokenInfo(
+        access_token="access_token",
+        refresh_token="refresh_token",
+        token_type=BEARER_TOKEN_TYPE,
+    )
+    login_token = TokenInfo(
+        access_token="login_access_token",
+        refresh_token="login_refresh_token",
+        token_type=BEARER_TOKEN_TYPE,
+    )
+    refresh_access_token_response = TokenInfo(
+        access_token="access_token",
+        token_type=BEARER_TOKEN_TYPE,
+    )
+
+    auth_service.register = AsyncMock(
+        return_value=register_token,
+    )
+    auth_service.authenticate_user = AsyncMock(
+        return_value=login_token,
+    )
+    auth_service.refresh_access_token = AsyncMock(
+        return_value=refresh_access_token_response,
+    )
+    return auth_service
