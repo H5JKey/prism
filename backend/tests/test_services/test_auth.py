@@ -41,7 +41,6 @@ class TestAuthService:
         auth_service: AuthService,
     ) -> None:
         await auth_service.register(register_user_data)
-
         register_user_data.email = "email2@email.com"
         with pytest.raises(UserUsernameAlreadyExistsError):
             await auth_service.register(register_user_data)
