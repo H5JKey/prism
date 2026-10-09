@@ -17,22 +17,22 @@ class TestRenderGenerateHandler:
         minio_client: MinioClient,
         render_generate_handler: RenderGenerateHandlerService,
     ) -> None:
-        mocker.patch.object(
+        get_project_by_id_mock = mocker.patch.object(
             render_generate_handler.project_repository,
             "get_by_id",
             return_value=full_project,
         )
-        mocker.patch.object(
+        get_file_size_mock = mocker.patch.object(
             minio_client,
             "get_file_size",
             return_value=1000,
         )
-        mocker.patch.object(
+        create_file_mock = mocker.patch.object(
             render_generate_handler.file_repository,
             "create_file",
             return_value=render_file,
         )
-        mocker.patch.object(
+        add_render_file_mock = mocker.patch.object(
             render_generate_handler.render_repository,
             "add_render_file",
             return_value=None,
@@ -42,6 +42,14 @@ class TestRenderGenerateHandler:
             minio_client,
         )
 
+        get_project_by_id_mock.assert_called_once_with(full_project.id)
+        get_file_size_mock.assert_called_once()
+        create_file_mock.assert_called_once()
+        add_render_file_mock.assert_called_once_with(
+            render_id=full_project.render_id,
+            file_id=render_file.id,
+        )
+
     async def test_handle_render_generated_project_not_exists(
         self,
         render_generated_event: RenderGeneratedEvent,
@@ -49,7 +57,7 @@ class TestRenderGenerateHandler:
         minio_client: MinioClient,
         render_generate_handler: RenderGenerateHandlerService,
     ) -> None:
-        mocker.patch.object(
+        get_project_by_id_mock = mocker.patch.object(
             render_generate_handler.project_repository,
             "get_by_id",
             return_value=None,
@@ -60,18 +68,23 @@ class TestRenderGenerateHandler:
                 minio_client,
             )
 
+        get_project_by_id_mock.assert_called_once_with(
+            render_generated_event.project_id,
+        )
+
     async def test_update_project_status_valid(
         self,
         full_project: Project,
         mocker: MockerFixture,
         render_generate_handler: RenderGenerateHandlerService,
     ) -> None:
-        mocker.patch.object(
+        update_project_status_mock = mocker.patch.object(
             render_generate_handler.project_repository,
             "update_project_status",
             return_value=full_project,
         )
         await render_generate_handler.update_project_status(full_project.id)
+        update_project_status_mock.assert_called_once_with(full_project.id)
 
     async def test_update_not_exists_project(
         self,
@@ -79,10 +92,11 @@ class TestRenderGenerateHandler:
         mocker: MockerFixture,
         render_generate_handler: RenderGenerateHandlerService,
     ) -> None:
-        mocker.patch.object(
+        update_project_status_mock = mocker.patch.object(
             render_generate_handler.project_repository,
             "update_project_status",
             return_value=None,
         )
         with pytest.raises(ProjectIdNotFoundError):
             await render_generate_handler.update_project_status(full_project.id)
+        update_project_status_mock.assert_called_once_with(full_project.id)

@@ -29,13 +29,15 @@ class TestUserService:
         mocker: MockerFixture,
         user_service: UserService,
     ) -> None:
-        mocker.patch.object(
+        get_user_by_id_mock = mocker.patch.object(
             user_service.user_repository,
             "get_by_id",
             autospec=True,
             return_value=user,
         )
         user_full_response = await user_service.get_profile_by_id(user.id)
+        get_user_by_id_mock.assert_called_once_with(user.id)
+
         assert user_full_response.id == user.id
         assert user_full_response.surname == user.surname
         assert user_full_response.name == user.name
@@ -48,14 +50,16 @@ class TestUserService:
         mocker: MockerFixture,
         user_service: UserService,
     ) -> None:
-        mocker.patch.object(
+        get_user_by_id_mock = mocker.patch.object(
             user_service.user_repository,
             "get_by_id",
             autospec=True,
             return_value=None,
         )
+        user_id = -1
         with pytest.raises(UserIdNotFoundError):
-            await user_service.get_profile_by_id(-1)
+            await user_service.get_profile_by_id(user_id)
+        get_user_by_id_mock.assert_called_once_with(user_id)
 
     async def test_get_by_id_valid(
         self,
@@ -63,13 +67,14 @@ class TestUserService:
         mocker: MockerFixture,
         user_service: UserService,
     ) -> None:
-        mocker.patch.object(
+        get_user_by_id_mock = mocker.patch.object(
             user_service.user_repository,
             "get_by_id",
             autospec=True,
             return_value=user,
         )
         user_response = await user_service.get_by_id(user.id)
+        get_user_by_id_mock.assert_called_once_with(user.id)
         assert user_response.id == user.id
         assert user_response.surname == user.surname
         assert user_response.name == user.name
@@ -82,46 +87,51 @@ class TestUserService:
         mocker: MockerFixture,
         user_service: UserService,
     ) -> None:
-        mocker.patch.object(
+        get_user_by_id_mock = mocker.patch.object(
             user_service.user_repository,
             "get_by_id",
             autospec=True,
             return_value=None,
         )
+        user_id = -1
         with pytest.raises(UserIdNotFoundError):
-            await user_service.get_by_id(-1)
+            await user_service.get_by_id(user_id)
+        get_user_by_id_mock.assert_called_once_with(user_id)
 
     async def test_update_user_not_exist(
         self,
         mocker: MockerFixture,
         user_service: UserService,
     ) -> None:
-        mocker.patch.object(
-            user_service,
+        get_user_by_id_mock = mocker.patch.object(
+            user_service.user_repository,
             "get_by_id",
             autospec=True,
             return_value=None,
         )
-
         update_user_data = UserUpdate(
             surname="updated_surname",
             name="updated_name",
             username="updated_username",
             email="updated_email@email.com",
         )
+        user_id = -1
         with pytest.raises(UserIdNotFoundError):
-            await user_service.update_user(-1, update_user_data)
+            await user_service.update_user(user_id, update_user_data)
+        get_user_by_id_mock.assert_called_once_with(user_id)
 
     async def test_delete_not_exist(
         self,
         mocker: MockerFixture,
         user_service: UserService,
     ) -> None:
-        mocker.patch.object(
-            user_service,
+        get_user_by_id_mock = mocker.patch.object(
+            user_service.user_repository,
             "get_by_id",
             autospec=True,
             return_value=None,
         )
+        user_id = -1
         with pytest.raises(UserIdNotFoundError):
-            await user_service.delete_by_id(-1)
+            await user_service.delete_by_id(user_id)
+        get_user_by_id_mock.assert_called_once_with(user_id)
